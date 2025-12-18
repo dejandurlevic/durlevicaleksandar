@@ -12,6 +12,10 @@
     
     <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
         <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+            <p style="margin: 10px 0;"><strong style="color: #1f2937;">Inquiry ID:</strong> <span style="color: #4b5563;">#{{ $inquiryId ?? 'N/A' }}</span></p>
+        </div>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
             <p style="margin: 10px 0;"><strong style="color: #1f2937;">Name:</strong> <span style="color: #4b5563;">{{ $name ?? 'Not provided' }}</span></p>
         </div>
         
@@ -36,6 +40,7 @@
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 12px;">
             <p style="margin: 0;">This inquiry was submitted from the FitCoachAleksandar platform.</p>
+            <p style="margin: 5px 0 0 0;">Review and approve at: <a href="{{ url('/admin/inquiries') }}" style="color: #1f2937;">Admin Panel</a></p>
         </div>
     </div>
 </body>

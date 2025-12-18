@@ -12,9 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_admin')->default(0)->after('email_verified_at');
-            $table->boolean('subscription_active')->default(0)->after('is_admin');
-            $table->timestamp('subscription_expires_at')->nullable()->after('subscription_active');
+            $table->string('invite_token')->nullable()->unique()->after('email');
+            $table->timestamp('invite_token_used_at')->nullable()->after('invite_token');
         });
     }
 
@@ -24,28 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['is_admin', 'subscription_active', 'subscription_expires_at']);
+            $table->dropColumn(['invite_token', 'invite_token_used_at']);
         });
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
