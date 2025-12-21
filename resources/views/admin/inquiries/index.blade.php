@@ -25,11 +25,11 @@
 
         <!-- Sidebar -->
         <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-                class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:transition-none h-screen overflow-y-auto">
-            <div class="p-4 lg:p-6">
-                <div class="flex items-center justify-between mb-6 lg:mb-8">
-                    <h1 class="text-xl lg:text-2xl font-bold text-gray-900">FitCoach Admin</h1>
-                    <button @click="sidebarOpen = false" class="lg:hidden text-gray-500 hover:text-gray-700">
+                class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:transition-none h-screen overflow-y-auto shadow-lg lg:shadow-none">
+            <div class="p-3 sm:p-4 lg:p-6">
+                <div class="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+                    <h1 class="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-gray-900 truncate">FitCoach Admin</h1>
+                    <button @click="sidebarOpen = false" class="lg:hidden text-gray-600 hover:text-gray-900 p-1 -mr-1">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -113,53 +113,53 @@
         <!-- Main Content -->
         <main class="flex-1 lg:ml-64 w-full">
             <!-- Mobile Header -->
-            <div class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-                <button @click="sidebarOpen = true" class="text-gray-500 hover:text-gray-700">
+            <div class="lg:hidden bg-white border-b border-gray-200 px-3 sm:px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+                <button @click="sidebarOpen = true" class="text-gray-700 hover:text-gray-900 p-2 -ml-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
-                <h1 class="text-lg font-bold text-gray-900">FitCoach Admin</h1>
+                <h1 class="text-base sm:text-lg font-bold text-gray-900 truncate mx-2">FitCoach Admin</h1>
                 <div class="w-6"></div>
             </div>
 
-            <div class="p-4 sm:p-6 lg:p-8">
-                <div class="mb-6">
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Manage Inquiries</h1>
-                    <p class="text-sm sm:text-base text-gray-600">Review and approve user registration requests</p>
+            <div class="p-3 sm:p-4 lg:p-8">
+                <div class="mb-4 sm:mb-6">
+                    <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 text-center sm:text-left">Manage Inquiries</h1>
+                    <p class="text-xs sm:text-sm lg:text-base text-gray-600 text-center sm:text-left">Review and approve user registration requests</p>
                 </div>
 
                 <!-- Notification Banner for New Inquiries -->
                 @if(isset($pendingCount) && $pendingCount > 0)
-                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-lg">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-3 sm:p-4 mb-4 sm:mb-6 rounded-lg">
+                        <div class="flex items-start sm:items-center">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                             </svg>
-                            <div class="flex-1">
-                                <p class="text-sm sm:text-base font-semibold text-blue-800">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs sm:text-sm lg:text-base font-semibold text-blue-800 break-words">
                                     You have <span class="font-bold">{{ $pendingCount }}</span> {{ $pendingCount === 1 ? 'new inquiry' : 'new inquiries' }} waiting for approval!
                                 </p>
-                                <p class="text-xs sm:text-sm text-blue-700 mt-1">Someone has chosen a plan and submitted a subscription request.</p>
+                                <p class="text-xs sm:text-sm text-blue-700 mt-1 break-words">Someone has chosen a plan and submitted a subscription request.</p>
                             </div>
                         </div>
                     </div>
                 @endif
 
                 @if(session('success'))
-                    <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded-lg">
-                        <p class="text-green-800 font-semibold mb-2">{{ session('success') }}</p>
+                    <div class="bg-green-50 border-l-4 border-green-400 p-3 sm:p-4 mb-4 sm:mb-6 rounded-lg">
+                        <p class="text-xs sm:text-sm lg:text-base text-green-800 font-semibold mb-2 break-words">{{ session('success') }}</p>
                         @if(session('registration_url'))
                             <div class="mt-3">
-                                <p class="text-sm text-green-700 mb-2 font-medium">Registration Link (copy and send to user if email failed):</p>
-                                <div class="flex items-center gap-2 bg-white p-3 rounded-lg border border-green-200">
+                                <p class="text-xs sm:text-sm text-green-700 mb-2 font-medium break-words">Registration Link (copy and send to user if email failed):</p>
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white p-2 sm:p-3 rounded-lg border border-green-200">
                                     <input type="text" 
                                            id="registration-url-{{ session('inquiry_id') }}" 
                                            value="{{ session('registration_url') }}" 
                                            readonly 
-                                           class="flex-1 text-sm text-gray-900 bg-transparent border-none focus:outline-none">
+                                           class="flex-1 text-xs sm:text-sm text-gray-900 bg-transparent border-none focus:outline-none break-all">
                                     <button onclick="copyRegistrationLink('registration-url-{{ session('inquiry_id') }}')" 
-                                            class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold">
+                                            class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm font-semibold whitespace-nowrap">
                                         Copy Link
                                     </button>
                                 </div>
@@ -169,19 +169,19 @@
                 @endif
 
                 @if(session('error'))
-                    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-lg">
-                        <p class="text-red-800 font-semibold mb-2">{{ session('error') }}</p>
+                    <div class="bg-red-50 border-l-4 border-red-400 p-3 sm:p-4 mb-4 sm:mb-6 rounded-lg">
+                        <p class="text-xs sm:text-sm lg:text-base text-red-800 font-semibold mb-2 break-words">{{ session('error') }}</p>
                         @if(session('registration_url'))
                             <div class="mt-3">
-                                <p class="text-sm text-red-700 mb-2 font-medium">Registration Link (copy and send manually):</p>
-                                <div class="flex items-center gap-2 bg-white p-3 rounded-lg border border-red-200">
+                                <p class="text-xs sm:text-sm text-red-700 mb-2 font-medium break-words">Registration Link (copy and send manually):</p>
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white p-2 sm:p-3 rounded-lg border border-red-200">
                                     <input type="text" 
                                            id="registration-url-{{ session('inquiry_id') }}" 
                                            value="{{ session('registration_url') }}" 
                                            readonly 
-                                           class="flex-1 text-sm text-gray-900 bg-transparent border-none focus:outline-none">
+                                           class="flex-1 text-xs sm:text-sm text-gray-900 bg-transparent border-none focus:outline-none break-all">
                                     <button onclick="copyRegistrationLink('registration-url-{{ session('inquiry_id') }}')" 
-                                            class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
+                                            class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-semibold whitespace-nowrap">
                                         Copy Link
                                     </button>
                                 </div>
@@ -192,49 +192,54 @@
 
                 @if($inquiries->count() > 0)
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto -mx-3 sm:mx-0">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">ID</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Name</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Email</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Phone</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Plan</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                                        <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">ID</th>
+                                        <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider hidden sm:table-cell">Name</th>
+                                        <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Email</th>
+                                        <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider hidden md:table-cell">Phone</th>
+                                        <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider hidden lg:table-cell">Plan</th>
+                                        <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                                        <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider hidden md:table-cell">Date</th>
+                                        <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($inquiries as $inquiry)
                                         <tr class="hover:bg-gray-50">
-                                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{{ $inquiry->id }}</td>
-                                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $inquiry->name ?? 'N/A' }}</td>
-                                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $inquiry->email }}</td>
-                                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $inquiry->phone }}</td>
-                                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{{ $inquiry->plan }}</td>
-                                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                                            <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-900">#{{ $inquiry->id }}</td>
+                                            <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 hidden sm:table-cell break-words">{{ $inquiry->name ?? 'N/A' }}</td>
+                                            <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-all">
+                                                <div class="font-medium">{{ $inquiry->email }}</div>
+                                                <div class="text-gray-500 sm:hidden mt-1">
+                                                    {{ $inquiry->name ?? 'N/A' }} • {{ $inquiry->plan }}
+                                                </div>
+                                            </td>
+                                            <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 hidden md:table-cell break-words">{{ $inquiry->phone }}</td>
+                                            <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-gray-900 hidden lg:table-cell break-words">{{ $inquiry->plan }}</td>
+                                            <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4">
                                                 @if($inquiry->approved)
-                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Approved</span>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 whitespace-nowrap">Approved</span>
                                                 @else
-                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 whitespace-nowrap">Pending</span>
                                                 @endif
                                             </td>
-                                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inquiry->created_at->format('M d, Y') }}</td>
-                                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
+                                            <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-500 hidden md:table-cell whitespace-nowrap">{{ $inquiry->created_at->format('M d, Y') }}</td>
+                                            <td class="px-2 sm:px-4 lg:px-6 py-3 sm:py-4">
                                                 @if(!$inquiry->approved)
                                                     <form method="POST" action="{{ route('admin.inquiries.approve', $inquiry) }}" class="inline">
                                                         @csrf
-                                                        <button type="submit" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold">
+                                                        <button type="submit" class="px-2 sm:px-3 py-1 sm:py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm font-semibold whitespace-nowrap">
                                                             Approve
                                                         </button>
                                                     </form>
                                                 @else
-                                                    <div class="flex items-center gap-2">
+                                                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 sm:gap-2">
                                                         @if($inquiry->invite_token)
                                                             <button onclick="showRegistrationLink({{ $inquiry->id }}, '{{ route('register', ['token' => $inquiry->invite_token]) }}')" 
-                                                                    class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold hover:bg-blue-200 transition-colors">
+                                                                    class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold hover:bg-blue-200 transition-colors whitespace-nowrap">
                                                                 Copy Link
                                                             </button>
                                                         @endif
@@ -242,7 +247,7 @@
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" 
-                                                                    class="px-2 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 transition-colors">
+                                                                    class="px-2 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 transition-colors whitespace-nowrap w-full sm:w-auto">
                                                                 Delete
                                                             </button>
                                                         </form>
@@ -256,12 +261,12 @@
                         </div>
                     </div>
 
-                    <div class="mt-6">
+                    <div class="mt-4 sm:mt-6 px-3 sm:px-0">
                         {{ $inquiries->links() }}
                     </div>
                 @else
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-                        <p class="text-gray-500">No inquiries found.</p>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8 text-center">
+                        <p class="text-sm sm:text-base text-gray-500">No inquiries found.</p>
                     </div>
                 @endif
             </div>
@@ -269,28 +274,28 @@
     </div>
 
     <!-- Registration Link Modal -->
-    <div id="registrationLinkModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50 p-4" onclick="hideRegistrationLinkModal()">
-        <div class="bg-white rounded-xl p-6 w-full max-w-2xl shadow-2xl" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-gray-900">Registration Link</h3>
-                <button onclick="hideRegistrationLinkModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div id="registrationLinkModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50 p-3 sm:p-4" onclick="hideRegistrationLinkModal()">
+        <div class="bg-white rounded-xl p-4 sm:p-6 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-3 sm:mb-4">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900">Registration Link</h3>
+                <button onclick="hideRegistrationLinkModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
-            <p class="text-sm text-gray-600 mb-4">Copy this link and send it to the user:</p>
-            <div class="flex items-center gap-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <p class="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 break-words">Copy this link and send it to the user:</p>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
                 <input type="text" 
                        id="modal-registration-url" 
                        readonly 
-                       class="flex-1 text-sm text-gray-900 bg-transparent border-none focus:outline-none">
+                       class="flex-1 text-xs sm:text-sm text-gray-900 bg-transparent border-none focus:outline-none break-all">
                 <button onclick="copyRegistrationLink('modal-registration-url')" 
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold">
+                        class="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-semibold whitespace-nowrap">
                     Copy
                 </button>
             </div>
-            <div id="copy-success" class="hidden mt-3 p-2 bg-green-100 text-green-700 rounded text-sm text-center">
+            <div id="copy-success" class="hidden mt-3 p-2 bg-green-100 text-green-700 rounded text-xs sm:text-sm text-center">
                 Link copied to clipboard!
             </div>
         </div>
