@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('inquiries', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->nullable();
+            $table->string('email');
+            $table->string('phone');
+            $table->string('plan');
+            $table->text('message')->nullable();
+            $table->boolean('approved')->default(false);
+            $table->timestamp('approved_at')->nullable();
+            $table->string('invite_token')->nullable()->unique();
+            $table->timestamp('invite_token_expires_at')->nullable();
             $table->timestamps();
         });
     }
