@@ -113,7 +113,7 @@
                             <div class="text-sm font-semibold text-gray-600">Years Experience</div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                            <div class="text-4xl font-extrabold text-gray-900 mb-2">2000+</div>
+                            <div class="text-4xl font-extrabold text-gray-900 mb-2">20+</div>
                             <div class="text-sm font-semibold text-gray-600">Training Videos</div>
                         </div>
                     </div>
