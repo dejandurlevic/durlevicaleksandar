@@ -16,7 +16,8 @@ class InquiryController extends Controller
     public function index()
     {
         $inquiries = Inquiry::latest()->paginate(15);
-        return view('admin.inquiries.index', compact('inquiries'));
+        $pendingCount = Inquiry::where('approved', false)->count();
+        return view('admin.inquiries.index', compact('inquiries', 'pendingCount'));
     }
 
     /**
@@ -77,5 +78,16 @@ class InquiryController extends Controller
                 ->with('registration_url', $registrationUrl)
                 ->with('inquiry_id', $inquiry->id);
         }
+    }
+
+    /**
+     * Delete an inquiry.
+     */
+    public function destroy(Inquiry $inquiry)
+    {
+        $inquiry->delete();
+
+        return redirect()->route('admin.inquiries.index')
+            ->with('success', 'Inquiry deleted successfully.');
     }
 }

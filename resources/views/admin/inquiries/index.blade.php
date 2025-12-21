@@ -47,11 +47,16 @@
                     <div class="pt-4 mt-4 border-t border-gray-200">
                         <p class="px-3 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Admin Panel</p>
                         
-                        <a href="{{ route('admin.inquiries.index') }}" class="flex items-center px-3 sm:px-4 py-2 sm:py-3 text-gray-900 bg-gray-100 rounded-lg font-medium text-sm sm:text-base">
-                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-                            </svg>
-                            Manage Inquiries
+                        <a href="{{ route('admin.inquiries.index') }}" class="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 text-gray-900 bg-gray-100 rounded-lg font-medium text-sm sm:text-base">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                                </svg>
+                                Manage Inquiries
+                            </div>
+                            @if(isset($pendingCount) && $pendingCount > 0)
+                                <span class="ml-2 px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">{{ $pendingCount }}</span>
+                            @endif
                         </a>
                         
                         <a href="{{ route('admin.videos.index') }}" class="flex items-center px-3 sm:px-4 py-2 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
@@ -123,6 +128,23 @@
                     <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Manage Inquiries</h1>
                     <p class="text-sm sm:text-base text-gray-600">Review and approve user registration requests</p>
                 </div>
+
+                <!-- Notification Banner for New Inquiries -->
+                @if(isset($pendingCount) && $pendingCount > 0)
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-lg">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <div class="flex-1">
+                                <p class="text-sm sm:text-base font-semibold text-blue-800">
+                                    You have <span class="font-bold">{{ $pendingCount }}</span> {{ $pendingCount === 1 ? 'new inquiry' : 'new inquiries' }} waiting for approval!
+                                </p>
+                                <p class="text-xs sm:text-sm text-blue-700 mt-1">Someone has chosen a plan and submitted a subscription request.</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 @if(session('success'))
                     <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded-lg">
@@ -209,14 +231,21 @@
                                                         </button>
                                                     </form>
                                                 @else
-                                                    <div class="flex flex-col gap-2">
-                                                        <span class="text-gray-400 text-sm">Approved</span>
+                                                    <div class="flex items-center gap-2">
                                                         @if($inquiry->invite_token)
                                                             <button onclick="showRegistrationLink({{ $inquiry->id }}, '{{ route('register', ['token' => $inquiry->invite_token]) }}')" 
                                                                     class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold hover:bg-blue-200 transition-colors">
                                                                 Copy Link
                                                             </button>
                                                         @endif
+                                                        <form action="{{ route('admin.inquiries.destroy', $inquiry) }}" method="POST" class="inline" onsubmit="return confirmDelete('{{ $inquiry->email }}')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" 
+                                                                    class="px-2 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 transition-colors">
+                                                                Delete
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 @endif
                                             </td>
@@ -299,6 +328,10 @@
             const modal = document.getElementById('registrationLinkModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+        }
+
+        function confirmDelete(email) {
+            return confirm(`Are you sure you want to delete the inquiry from "${email}"? This action cannot be undone and will permanently delete the inquiry from the database.`);
         }
     </script>
 </body>

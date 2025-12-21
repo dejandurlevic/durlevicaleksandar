@@ -300,7 +300,7 @@
     <section id="pricing" class="py-24 bg-white border-t border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">изазов за глутеус</h2>
+                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">Изазов за глутеус</h2>
                 <p class="text-xl text-gray-600 max-w-2xl mx-auto">Изаберите план који одговара вашем фитнес путовању
 
 </p>

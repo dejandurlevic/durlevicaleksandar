@@ -87,5 +87,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Manage Inquiries
         Route::get('/inquiries', [\App\Http\Controllers\Admin\InquiryController::class, 'index'])->name('inquiries.index');
         Route::post('/inquiries/{inquiry}/approve', [\App\Http\Controllers\Admin\InquiryController::class, 'approve'])->name('inquiries.approve');
+        Route::delete('/inquiries/{inquiry}', [\App\Http\Controllers\Admin\InquiryController::class, 'destroy'])->name('inquiries.destroy');
     });
 });
