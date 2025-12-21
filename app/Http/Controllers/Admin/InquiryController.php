@@ -38,10 +38,12 @@ class InquiryController extends Controller
             'approved_at' => now(),
         ]);
 
+        // Generate registration URL
+        $registrationUrl = route('register', ['token' => $token]);
+        
         // Send approval email with registration link
+        $emailSent = false;
         try {
-            $registrationUrl = route('register', ['token' => $token]);
-            
             Mail::send('emails.inquiry-approved', [
                 'name' => $inquiry->name ?? 'there',
                 'plan' => $inquiry->plan,
@@ -51,6 +53,7 @@ class InquiryController extends Controller
                     ->subject('Your Registration Invitation - FitCoachAleksandar');
             });
             
+            $emailSent = true;
             Log::info('Approval email sent successfully', [
                 'inquiry_id' => $inquiry->id,
                 'email' => $inquiry->email,
@@ -60,12 +63,19 @@ class InquiryController extends Controller
                 'inquiry_id' => $inquiry->id,
                 'error' => $e->getMessage(),
             ]);
-            
-            return redirect()->route('admin.inquiries.index')
-                ->with('error', 'Inquiry approved but failed to send email. Registration link: ' . $registrationUrl);
         }
 
-        return redirect()->route('admin.inquiries.index')
-            ->with('success', 'Inquiry approved and invitation email sent successfully.');
+        // Always show the registration URL so admin can copy it
+        if ($emailSent) {
+            return redirect()->route('admin.inquiries.index')
+                ->with('success', 'Inquiry approved and invitation email sent successfully.')
+                ->with('registration_url', $registrationUrl)
+                ->with('inquiry_id', $inquiry->id);
+        } else {
+            return redirect()->route('admin.inquiries.index')
+                ->with('error', 'Inquiry approved but email failed to send. Please copy the registration link below and send it manually.')
+                ->with('registration_url', $registrationUrl)
+                ->with('inquiry_id', $inquiry->id);
+        }
     }
 }

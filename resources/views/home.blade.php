@@ -344,7 +344,7 @@
                         <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">MOST POPULAR</span>
                     </div>
                     <div class="mb-8 text-white">
-                        <h3 class="text-2xl font-bold mb-2">Training Plans and Meal Plans</h3>
+                        <h3 class="text-2xl font-bold mb-2">Training Videos and Meal Plans</h3>
                         <p class="text-gray-300 mb-6">Best value for serious athletes</p>
                         <div class="mb-6">
                             <span class="text-5xl font-extrabold">€49</span>

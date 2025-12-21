@@ -126,13 +126,45 @@
 
                 @if(session('success'))
                     <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded-lg">
-                        <p class="text-green-800">{{ session('success') }}</p>
+                        <p class="text-green-800 font-semibold mb-2">{{ session('success') }}</p>
+                        @if(session('registration_url'))
+                            <div class="mt-3">
+                                <p class="text-sm text-green-700 mb-2 font-medium">Registration Link (copy and send to user if email failed):</p>
+                                <div class="flex items-center gap-2 bg-white p-3 rounded-lg border border-green-200">
+                                    <input type="text" 
+                                           id="registration-url-{{ session('inquiry_id') }}" 
+                                           value="{{ session('registration_url') }}" 
+                                           readonly 
+                                           class="flex-1 text-sm text-gray-900 bg-transparent border-none focus:outline-none">
+                                    <button onclick="copyRegistrationLink('registration-url-{{ session('inquiry_id') }}')" 
+                                            class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold">
+                                        Copy Link
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endif
 
                 @if(session('error'))
                     <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-lg">
-                        <p class="text-red-800">{{ session('error') }}</p>
+                        <p class="text-red-800 font-semibold mb-2">{{ session('error') }}</p>
+                        @if(session('registration_url'))
+                            <div class="mt-3">
+                                <p class="text-sm text-red-700 mb-2 font-medium">Registration Link (copy and send manually):</p>
+                                <div class="flex items-center gap-2 bg-white p-3 rounded-lg border border-red-200">
+                                    <input type="text" 
+                                           id="registration-url-{{ session('inquiry_id') }}" 
+                                           value="{{ session('registration_url') }}" 
+                                           readonly 
+                                           class="flex-1 text-sm text-gray-900 bg-transparent border-none focus:outline-none">
+                                    <button onclick="copyRegistrationLink('registration-url-{{ session('inquiry_id') }}')" 
+                                            class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
+                                        Copy Link
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endif
 
@@ -177,7 +209,15 @@
                                                         </button>
                                                     </form>
                                                 @else
-                                                    <span class="text-gray-400 text-sm">Approved</span>
+                                                    <div class="flex flex-col gap-2">
+                                                        <span class="text-gray-400 text-sm">Approved</span>
+                                                        @if($inquiry->invite_token)
+                                                            <button onclick="showRegistrationLink({{ $inquiry->id }}, '{{ route('register', ['token' => $inquiry->invite_token]) }}')" 
+                                                                    class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold hover:bg-blue-200 transition-colors">
+                                                                Copy Link
+                                                            </button>
+                                                        @endif
+                                                    </div>
                                                 @endif
                                             </td>
                                         </tr>
@@ -198,6 +238,69 @@
             </div>
         </main>
     </div>
+
+    <!-- Registration Link Modal -->
+    <div id="registrationLinkModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50 p-4" onclick="hideRegistrationLinkModal()">
+        <div class="bg-white rounded-xl p-6 w-full max-w-2xl shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">Registration Link</h3>
+                <button onclick="hideRegistrationLinkModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">Copy this link and send it to the user:</p>
+            <div class="flex items-center gap-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <input type="text" 
+                       id="modal-registration-url" 
+                       readonly 
+                       class="flex-1 text-sm text-gray-900 bg-transparent border-none focus:outline-none">
+                <button onclick="copyRegistrationLink('modal-registration-url')" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold">
+                    Copy
+                </button>
+            </div>
+            <div id="copy-success" class="hidden mt-3 p-2 bg-green-100 text-green-700 rounded text-sm text-center">
+                Link copied to clipboard!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyRegistrationLink(inputId) {
+            const input = document.getElementById(inputId);
+            input.select();
+            input.setSelectionRange(0, 99999); // For mobile devices
+            navigator.clipboard.writeText(input.value).then(function() {
+                // Show success message
+                const successDiv = document.getElementById('copy-success');
+                if (successDiv) {
+                    successDiv.classList.remove('hidden');
+                    setTimeout(() => {
+                        successDiv.classList.add('hidden');
+                    }, 2000);
+                }
+            }).catch(function(err) {
+                // Fallback for older browsers
+                document.execCommand('copy');
+            });
+        }
+
+        function showRegistrationLink(inquiryId, url) {
+            const modal = document.getElementById('registrationLinkModal');
+            const input = document.getElementById('modal-registration-url');
+            input.value = url;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function hideRegistrationLinkModal() {
+            const modal = document.getElementById('registrationLinkModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    </script>
 </body>
 </html>
 
