@@ -16,7 +16,7 @@ class AboutController extends Controller
             'photo' => asset('images/aca.jpg'),
             'bio' => 'Certified fitness trainer with a passion for helping clients achieve their health and fitness goals. Specializing in strength training, weight loss, and athletic performance.',
             'clients_count' => 50,
-            'experience_years' => 4,
+            'experience_years' => 5,
             'services' => [
                 'Training Programs',
                 'Meal Plans',

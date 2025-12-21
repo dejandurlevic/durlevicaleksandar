@@ -23,23 +23,6 @@
 
                 <form method="POST" action="{{ route('register') }}" class="space-y-6">
                     @csrf
-                    
-                    <input type="hidden" name="token" value="{{ $token ?? '' }}">
-
-                    @if(isset($error) && $error)
-                        <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
-                            <p class="text-red-800 text-sm">{{ $error }}</p>
-                        </div>
-                    @endif
-
-                    @if(isset($inquiry) && $inquiry)
-                        <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-lg">
-                            <p class="text-green-800 text-sm">
-                                <strong>Welcome!</strong> Your inquiry for <strong>{{ $inquiry->plan }}</strong> has been approved. 
-                                Please complete your registration below.
-                            </p>
-                        </div>
-                    @endif
 
                     <!-- Name -->
                     <div>
@@ -47,7 +30,7 @@
                         <input id="name" 
                                type="text" 
                                name="name" 
-                               value="{{ old('name', $inquiry->name ?? '') }}" 
+                               value="{{ old('name') }}" 
                                required 
                                autofocus 
                                autocomplete="name"
@@ -63,20 +46,13 @@
                         <input id="email" 
                                type="email" 
                                name="email" 
-                               value="{{ old('email', $inquiry->email ?? '') }}" 
+                               value="{{ old('email') }}" 
                                required 
                                autocomplete="username"
-                               {{ isset($inquiry) && $inquiry ? 'readonly' : '' }}
-                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200 {{ isset($inquiry) && $inquiry ? 'bg-gray-100' : '' }}">
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200">
                         @error('email')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
-                        @error('token')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                        @if(isset($inquiry) && $inquiry)
-                            <p class="mt-1 text-xs text-gray-500">This email is from your approved inquiry and cannot be changed.</p>
-                        @endif
                     </div>
 
                     <!-- Password -->

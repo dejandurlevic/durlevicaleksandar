@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Inquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\RateLimiter;
 
 class InquiryController extends Controller
 {
@@ -15,46 +13,27 @@ class InquiryController extends Controller
      */
     public function send(Request $request)
     {
-        // Rate limiting: max 3 inquiries per hour per IP
-        $key = 'inquiry:' . $request->ip();
-        if (RateLimiter::tooManyAttempts($key, 3)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Too many requests. Please try again later.'
-            ], 429);
-        }
-        RateLimiter::hit($key, 3600); // 1 hour
-
         try {
             $validated = $request->validate([
-                'plan' => 'required|string|max:255',
-                'email' => 'required|email|max:255',
-                'phone' => 'required|string|max:255',
-                'name' => 'nullable|string|max:255',
-                'message' => 'nullable|string|max:5000',
+                'plan' => 'required|string',
+                'email' => 'required|email',
+                'phone' => 'required|string',
+                'name' => 'nullable|string',
+                'message' => 'nullable|string',
             ]);
 
-            // Store inquiry in database
-            $inquiry = Inquiry::create([
-                'name' => $validated['name'] ?? null,
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'plan' => $validated['plan'],
-                'message' => $validated['message'] ?? null,
-                'approved' => false,
-            ]);
-
-            // Attempt to send email to admin
+            // Attempt to send email
             try {
+                // Rename 'message' to 'inquiryMessage' to avoid conflict with Laravel's reserved $message variable
                 $emailData = [
                     'plan' => $validated['plan'],
                     'email' => $validated['email'],
                     'phone' => $validated['phone'],
                     'name' => $validated['name'] ?? null,
                     'inquiryMessage' => $validated['message'] ?? null,
-                    'inquiryId' => $inquiry->id,
                 ];
                 
+                // Get recipient email from config (MAIL_FROM_ADDRESS or fallback)
                 $recipientEmail = config('mail.from.address', 'durlevicaleksandar@gmail.com');
                 
                 Mail::send('emails.inquiry', $emailData, function ($mail) use ($validated, $recipientEmail) {
@@ -63,22 +42,47 @@ class InquiryController extends Controller
                 });
                 
                 Log::info('Inquiry email sent successfully', [
-                    'inquiry_id' => $inquiry->id,
                     'recipient' => $recipientEmail,
                     'from_email' => $validated['email'],
+                    'plan' => $validated['plan'],
+                    'name' => $validated['name'] ?? 'Not provided',
+                    'phone' => $validated['phone']
+                ]);
+                
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Inquiry sent successfully!'
                 ]);
             } catch (\Exception $e) {
-                // Log email error but don't fail the request
+                // Log the detailed error
                 Log::error('Failed to send inquiry email', [
-                    'inquiry_id' => $inquiry->id,
                     'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'email' => $validated['email'] ?? 'unknown',
+                    'plan' => $validated['plan'] ?? 'unknown'
                 ]);
+                
+                // Check for specific SMTP authentication errors
+                $errorMessage = $e->getMessage();
+                $userFriendlyMessage = 'Failed to send inquiry email.';
+                
+                if (strpos($errorMessage, 'Failed to authenticate') !== false || 
+                    strpos($errorMessage, 'BadCredentials') !== false ||
+                    strpos($errorMessage, 'Username and Password not accepted') !== false) {
+                    $userFriendlyMessage = 'Email authentication failed. Please check your Gmail settings. You need to use an App Password (not your regular password). Enable 2-Step Verification and generate an App Password at: https://myaccount.google.com/apppasswords';
+                } elseif (strpos($errorMessage, 'Connection') !== false || strpos($errorMessage, 'timeout') !== false) {
+                    $userFriendlyMessage = 'Could not connect to email server. Please check your internet connection and try again.';
+                } elseif (strpos($errorMessage, 'Could not instantiate mail function') !== false) {
+                    $userFriendlyMessage = 'Email service is not properly configured. Please contact the administrator.';
+                }
+                
+                // Return error response with user-friendly message
+                return response()->json([
+                    'success' => false,
+                    'message' => $userFriendlyMessage,
+                    'technical_error' => config('app.debug') ? $errorMessage : null
+                ], 500);
             }
-            
-            return response()->json([
-                'success' => true, 
-                'message' => 'Your request has been sent. You will be contacted shortly.'
-            ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
@@ -92,7 +96,7 @@ class InquiryController extends Controller
             ]);
             return response()->json([
                 'success' => false,
-                'message' => 'An unexpected error occurred. Please try again later.'
+                'message' => 'An unexpected error occurred: ' . $e->getMessage()
             ], 500);
         }
     }

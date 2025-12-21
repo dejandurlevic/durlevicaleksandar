@@ -7,7 +7,6 @@
     <title>{{ config('app.name', 'Laravel') }} - Premium Fitness Training</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         @keyframes fadeInUp {
@@ -42,60 +41,29 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased bg-white" x-data="{ mobileMenuOpen: false }">
+<body class="font-sans antialiased bg-white">
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16 sm:h-20">
-                <a href="{{ route('home') }}" class="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+            <div class="flex justify-between items-center h-20">
+                <a href="{{ route('home') }}" class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                 FitCoachAleksandar
                 </a>
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center gap-4 lg:gap-6">
-                    <a href="{{ route('about') }}" class="text-gray-700 hover:text-gray-900 font-semibold transition-colors duration-200 text-sm lg:text-base">
+                <div class="flex items-center gap-6">
+                    <a href="{{ route('about') }}" class="text-gray-700 hover:text-gray-900 font-semibold transition-colors duration-200">
                         About Me
                     </a>
                     @auth
-                        <a href="{{ route('dashboard') }}" class="px-4 lg:px-6 py-2 lg:py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm lg:text-base">
+                        <a href="{{ route('dashboard') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
                             Dashboard
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="px-4 lg:px-6 py-2 lg:py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm lg:text-base">
+                        <a href="{{ route('login') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
                             Login
                         </a>
-                        {{-- Registration removed - by invitation only --}}
-                    @endauth
-                </div>
-                <!-- Mobile Menu Button -->
-                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-gray-700 hover:text-gray-900 p-2">
-                    <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                    <svg x-show="mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            <!-- Mobile Navigation Menu -->
-            <div x-show="mobileMenuOpen" 
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 transform -translate-y-2"
-                 x-transition:enter-end="opacity-100 transform translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 transform translate-y-0"
-                 x-transition:leave-end="opacity-0 transform -translate-y-2"
-                 class="md:hidden pb-4 border-t border-gray-200 mt-2 pt-4">
-                <div class="flex flex-col gap-3">
-                    <a href="{{ route('about') }}" class="text-gray-700 hover:text-gray-900 font-semibold transition-colors duration-200 px-2 py-2">
-                        About Me
-                    </a>
-                    @auth
-                        <a href="{{ route('dashboard') }}" class="px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 text-center">
-                            Dashboard
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}" class="px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 text-center">
-                            Login
+
+                        <a href="{{ route('register') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                            Register
                         </a>
                     @endauth
                 </div>
@@ -224,7 +192,7 @@
                             <div class="text-sm font-semibold text-gray-600">Years Experience</div>
                         </div>
                         <div class="text-center p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-300">
-                            <div class="text-4xl font-extrabold text-gray-900 mb-2">100+</div>
+                            <div class="text-4xl font-extrabold text-gray-900 mb-2">20+</div>
                             <div class="text-sm font-semibold text-gray-600">Training Videos</div>
                         </div>
                     </div>
@@ -296,7 +264,7 @@
     <section id="pricing" class="py-24 bg-white border-t border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">Pricing Plans</h2>
+                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">Pricing Plans and Glute Challenge</h2>
                 <p class="text-xl text-gray-600 max-w-2xl mx-auto">Choose the plan that fits your fitness journey</p>
             </div>
             
@@ -304,10 +272,10 @@
                 <!-- Basic Plan -->
                 <div class="bg-white rounded-3xl shadow-lg p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
                     <div class="mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Basic</h3>
-                        <p class="text-gray-600 mb-6">Perfect for getting started</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Meal Plans</h3>
+                        <p class="text-gray-600 mb-6">Perfect for only meal plans</p>
                         <div class="mb-6">
-                            <span class="text-5xl font-extrabold text-gray-900">€19</span>
+                            <span class="text-5xl font-extrabold text-gray-900">€35</span>
                             <span class="text-gray-600 text-lg">/month</span>
                         </div>
                     </div>
@@ -316,19 +284,19 @@
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Workout Plans</span>
+                            <span class="text-gray-700 font-medium">Progress Tracking</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Limited Video Access</span>
+                            <span class="text-gray-700 font-medium">Weekly Check-ins</span>
                         </li>
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-gray-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-500">Direct Trainer Support</span>
+                            <span class="text-gray-700 font-medium">Direct Trainer Chat</span>
                         </li>
                     </ul>
                     <button type="button" onclick="showPopup('Basic Plan')" class="block w-full bg-gray-100 text-gray-900 py-4 rounded-xl font-bold text-center hover:bg-gray-200 transition-colors duration-200">
@@ -342,14 +310,20 @@
                         <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">MOST POPULAR</span>
                     </div>
                     <div class="mb-8 text-white">
-                        <h3 class="text-2xl font-bold mb-2">Standard</h3>
+                        <h3 class="text-2xl font-bold mb-2">Training Plans and Meal Plans</h3>
                         <p class="text-gray-300 mb-6">Best value for serious athletes</p>
                         <div class="mb-6">
-                            <span class="text-5xl font-extrabold">€39</span>
+                            <span class="text-5xl font-extrabold">€49</span>
                             <span class="text-gray-300 text-lg">/month</span>
                         </div>
                     </div>
                     <ul class="space-y-4 mb-8 flex-grow text-white">
+                    <li class="flex items-start">
+                            <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="font-medium">All Access</span>
+                        </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -360,13 +334,7 @@
                             <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">Personalized Programs</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span class="font-medium">Email Support</span>
+                            <span class="font-medium">Priority Support</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,10 +351,10 @@
                 <!-- Premium Plan -->
                 <div class="bg-white rounded-3xl shadow-lg p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
                     <div class="mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
-                        <p class="text-gray-600 mb-6">Ultimate fitness experience</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Training Videos</h3>
+                        <p class="text-gray-600 mb-6">Ultimate fitness trening</p>
                         <div class="mb-6">
-                            <span class="text-5xl font-extrabold text-gray-900">€59</span>
+                            <span class="text-5xl font-extrabold text-gray-900">€39</span>
                             <span class="text-gray-600 text-lg">/month</span>
                         </div>
                     </div>
@@ -395,25 +363,20 @@
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">All Access</span>
+                            <span class="text-gray-700 font-medium">Full Video Library</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Direct Trainer Chat</span>
+                            <span class="text-gray-700 font-medium">Workout Videos for Glute</span>
                         </li>
+            
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Weekly Check-ins</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span class="text-gray-700 font-medium">Priority Support</span>
+                            <span class="text-gray-700 font-medium">Email Support</span>
                         </li>
                     </ul>
                     <button type="button" onclick="showPopup('Premium Plan')" class="block w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white py-4 rounded-xl font-bold text-center hover:shadow-lg transition-all duration-200 transform hover:scale-105">
@@ -502,21 +465,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Show success message in a better way
-                    const successDiv = document.createElement('div');
-                    successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 animate-fade-in';
-                    successDiv.style.zIndex = '9999';
-                    successDiv.textContent = result.message || 'Your request has been sent. You will be contacted shortly.';
-                    document.body.appendChild(successDiv);
-                    
-                    setTimeout(() => {
-                        successDiv.style.transition = 'opacity 0.3s ease-out';
-                        successDiv.style.opacity = '0';
-                        setTimeout(() => {
-                            successDiv.remove();
-                        }, 300);
-                    }, 5000);
-                    
+                    alert(result.message || 'Inquiry sent successfully!');
                     hidePopup();
                     this.reset();
                 } else {

@@ -24,8 +24,6 @@ class User extends Authenticatable
         'is_admin',
         'subscription_active',
         'subscription_expires_at',
-        'invite_token',
-        'invite_token_used_at',
     ];
 
     /**
@@ -51,7 +49,6 @@ class User extends Authenticatable
             'is_admin' => 'boolean',
             'subscription_active' => 'boolean',
             'subscription_expires_at' => 'datetime',
-            'invite_token_used_at' => 'datetime',
         ];
     }
 

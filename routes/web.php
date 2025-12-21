@@ -82,9 +82,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Category Videos Management (view and delete videos in a category)
         Route::get('/categories/{category}/videos', [CategoryController::class, 'show'])->name('categories.videos');
         Route::delete('/categories/{category}/videos/{video}', [CategoryController::class, 'destroyVideo'])->name('categories.videos.destroy');
-        
-        // Manage Inquiries
-        Route::get('/inquiries', [\App\Http\Controllers\Admin\InquiryController::class, 'index'])->name('inquiries.index');
-        Route::post('/inquiries/{inquiry}/approve', [\App\Http\Controllers\Admin\InquiryController::class, 'approve'])->name('inquiries.approve');
     });
 });
