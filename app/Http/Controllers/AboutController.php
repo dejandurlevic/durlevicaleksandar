@@ -12,9 +12,9 @@ class AboutController extends Controller
     public function index()
     {
         $trainer = [
-            'name' => 'Aleksandar Durlevic',
+            'name' => 'Александар Дурлевић',
             'photo' => asset('images/aca.jpg'),
-            'bio' => 'Certified fitness trainer with a passion for helping clients achieve their health and fitness goals. Specializing in strength training, weight loss, and athletic performance.',
+            'bio' => 'Сертификовани фитнес тренер са страшћу да помогне клијентима да остваре своје здравствене и фитнес циљеве. Специјализован за тренинг снаге, мршављење и спортске перформансе.',
             'clients_count' => 50,
             'experience_years' => 5,
             'services' => [

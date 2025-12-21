@@ -117,23 +117,23 @@
                         Premium Fitness Training
                     </div>
                     <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight text-gray-900 animate-fade-in-up animate-delay-200">
-                        Transform Your Body.<br>
+                    Трансформишите своје тело.<br>
                         <span class="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                            Train Smarter.
+                        Тренирајте паметније.
                         </span><br>
                         <span class="bg-gradient-to-r from-gray-700 to-gray-500 bg-clip-text text-transparent">
-                            Feel Stronger.
+                        Осећајте се јаче.
                         </span>
                     </h1>
                     <p class="text-xl text-gray-600 max-w-2xl mb-10 leading-relaxed animate-fade-in-up animate-delay-300">
-                        Personalized workout programs, video training library, progress tracking and direct access to your trainer — all in one platform.
+                    Персонализовани програми вежбања, видео библиотека тренинга, праћење напретка и директан приступ вашем тренеру — све на једној платформи.
                     </p>
                     <div class="flex flex-wrap gap-4 animate-fade-in-up animate-delay-400">
                         <a href="#pricing" class="px-8 py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
-                            Start Training
+                        Почни обуку
                         </a>
                         <a href="#services" class="px-8 py-4 bg-white border-2 border-gray-300 text-gray-900 rounded-xl font-bold text-lg hover:border-gray-900 hover:shadow-xl transition-all duration-300">
-                            Learn More
+                        Сазнајте више
                         </a>
                     </div>
                 </div>
@@ -146,7 +146,7 @@
                     </div>
                     <div class="absolute -bottom-6 -left-6 bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
                         <div class="text-2xl font-bold text-gray-900 mb-1">{{ $trainer['name'] }}</div>
-                        <div class="text-sm text-gray-600">Certified Fitness Trainer</div>
+                        <div class="text-sm text-gray-600">Сертификовани фитнес тренер</div>
                     </div>
                 </div>
             </div>
@@ -211,7 +211,7 @@
                 </div>
                 
                 <div>
-                    <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 text-gray-900">Your Trainer</h2>
+                    <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 text-gray-900">Ваш тренер</h2>
                     <p class="text-lg text-gray-600 leading-relaxed mb-8">
                         {{ $trainer['bio'] }}
                     </p>
@@ -219,15 +219,16 @@
                     <div class="grid grid-cols-3 gap-8">
                         <div class="text-center p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-300">
                             <div class="text-4xl font-extrabold text-gray-900 mb-2">{{ $trainer['clients_count'] }}+</div>
-                            <div class="text-sm font-semibold text-gray-600">Active Clients</div>
+                            <div class="text-sm font-semibold text-gray-600">Активни клијенти
+                            </div>
                         </div>
                         <div class="text-center p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-300">
                             <div class="text-4xl font-extrabold text-gray-900 mb-2">{{ $trainer['experience_years'] }}+</div>
-                            <div class="text-sm font-semibold text-gray-600">Years Experience</div>
+                            <div class="text-sm font-semibold text-gray-600">Вишегодишње искуство</div>
                         </div>
                         <div class="text-center p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-300">
                             <div class="text-4xl font-extrabold text-gray-900 mb-2">20+</div>
-                            <div class="text-sm font-semibold text-gray-600">Training Videos</div>
+                            <div class="text-sm font-semibold text-gray-600">Видео снимци за обуку</div>
                         </div>
                     </div>
                 </div>
@@ -239,20 +240,21 @@
     <section id="services" class="py-24 bg-gradient-to-b from-white to-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">What You Get</h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Comprehensive fitness solutions tailored to your unique goals</p>
+                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">Шта добијате</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Свеобухватна фитнес решења прилагођена вашим јединственим циљевима</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @php
                     $serviceData = [
-                        'Training Programs' => [
+                        'Програми обуке' => [
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>',
-                            'desc' => 'Complete, easy-to-follow programs designed to help you progress safely and effectively.'
+                            'desc' => 'Комплетни, лако пративи програми осмишљени да вам помогну да безбедно и ефикасно напредујете.'
                         ],
-                        'Meal Plans' => [
+                        'Планови оброка
+                        ' => [
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>',
-                            'desc' => 'Customized nutrition plans that complement your training and accelerate results.'
+                            'desc' => 'Прилагођени планови исхране који допуњују ваш тренинг и убрзавају резултате.'
                         ],
                         '1-on-1 Coaching' => [
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>',
@@ -266,9 +268,9 @@
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>',
                             'desc' => 'Expert nutritional guidance to optimize your performance and recovery.'
                         ],
-                        'Online Training' => [
+                        'Онлајн обука' => [
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>',
-                            'desc' => 'Full training video access after subscription payment with progress tracking.'
+                            'desc' => 'Потпун приступ видео записима за обуку након уплате претплате са праћењем напретка.'
                         ]
                     ];
                 @endphp
@@ -298,16 +300,18 @@
     <section id="pricing" class="py-24 bg-white border-t border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">Pricing Plans and Glute Challenge</h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Choose the plan that fits your fitness journey</p>
+                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">изазов за глутеус</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Изаберите план који одговара вашем фитнес путовању
+
+</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 <!-- Basic Plan -->
                 <div class="bg-white rounded-3xl shadow-lg p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
                     <div class="mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Meal Plans</h3>
-                        <p class="text-gray-600 mb-6">Perfect for only meal plans</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Планови оброка</h3>
+                        <p class="text-gray-600 mb-6">Идеално само за планове оброка</p>
                         <div class="mb-6">
                             <span class="text-5xl font-extrabold text-gray-900">€35</span>
                             <span class="text-gray-600 text-lg">/month</span>
@@ -318,19 +322,19 @@
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Progress Tracking</span>
+                            <span class="text-gray-700 font-medium">Праћење напретка</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Weekly Check-ins</span>
+                            <span class="text-gray-700 font-medium">Недељне провере</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Direct Trainer Chat</span>
+                            <span class="text-gray-700 font-medium">Директни chat са тренером</span>
                         </li>
                     </ul>
                     <button type="button" onclick="showPopup('Meal Plans')" class="block w-full bg-gray-100 text-gray-900 py-4 rounded-xl font-bold text-center hover:bg-gray-200 transition-colors duration-200">
@@ -344,8 +348,8 @@
                         <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">MOST POPULAR</span>
                     </div>
                     <div class="mb-8 text-white">
-                        <h3 class="text-2xl font-bold mb-2">Training Videos and Meal Plans</h3>
-                        <p class="text-gray-300 mb-6">Best value for serious athletes</p>
+                        <h3 class="text-2xl font-bold mb-2">Видео снимци за тренинг и планови оброка</h3>
+                        <p class="text-gray-300 mb-6">Најбоља вредност за озбиљне спортисте</p>
                         <div class="mb-6">
                             <span class="text-5xl font-extrabold">€49</span>
                             <span class="text-gray-300 text-lg">/month</span>
@@ -356,25 +360,25 @@
                             <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">All Access</span>
+                            <span class="font-medium">Потпун приступ</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">Full Video Library</span>
+                            <span class="font-medium">Комплетна видео библиотека</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">Priority Support</span>
+                            <span class="font-medium">Приоритетна подршка</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">Progress Tracking</span>
+                            <span class="font-medium">Праћење напретка</span>
                         </li>
                     </ul>
                     <button type="button" onclick="showPopup('Training Plans and Meal Plans')" class="block w-full bg-white text-gray-900 py-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors duration-200 shadow-lg">
@@ -385,8 +389,8 @@
                 <!-- Premium Plan -->
                 <div class="bg-white rounded-3xl shadow-lg p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
                     <div class="mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Training Videos</h3>
-                        <p class="text-gray-600 mb-6">Ultimate fitness trening</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Видео снимци за тренинг</h3>
+                        <p class="text-gray-600 mb-6">Врхунски фитнес тренинг</p>
                         <div class="mb-6">
                             <span class="text-5xl font-extrabold text-gray-900">€39</span>
                             <span class="text-gray-600 text-lg">/month</span>
@@ -397,20 +401,20 @@
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Full Video Library</span>
+                            <span class="text-gray-700 font-medium">Комплетна видео библиотека</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Workout Videos for Glute</span>
+                            <span class="text-gray-700 font-medium">Видео снимци вежби за глутеус</span>
                         </li>
             
                         <li class="flex items-start">
                             <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Email Support</span>
+                            <span class="text-gray-700 font-medium">Подршка путем е-поште</span>
                         </li>
                     </ul>
                     <button type="button" onclick="showPopup('Training Videos')" class="block w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white py-4 rounded-xl font-bold text-center hover:shadow-lg transition-all duration-200 transform hover:scale-105">
@@ -426,7 +430,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h3 class="text-3xl font-extrabold mb-4">FitCoachAleksandar</h3>
-                <p class="text-gray-400 mb-8 text-lg">Transform your body, transform your life.</p>
+                <p class="text-gray-400 mb-8 text-lg">Трансформишите своје тело, трансформишите свој живот.</p>
                 <div class="flex justify-center space-x-6 mb-8">
                     <a href="#" class="text-gray-400 hover:text-white transition-colors">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -444,7 +448,10 @@
                         </svg>
                     </a>
                 </div>
-                <p class="text-gray-500 text-sm">&copy; {{ date('Y') }} Durleone. All rights reserved.</p>
+                Website & Platform by 
+<a href="https://durlevicdejan.com" target="_blank">
+    Durlevic Dejan
+</a>
             </div>
         </div>
     </footer>
