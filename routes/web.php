@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Subscriptions Management
         Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::post('/subscriptions/{user}/update-status', [SubscriptionController::class, 'updateStatus'])->name('subscriptions.update-status');
+        Route::delete('/subscriptions/{user}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
         
         // Payments Management
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
