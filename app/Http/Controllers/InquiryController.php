@@ -14,12 +14,37 @@ class InquiryController extends Controller
     public function send(Request $request)
     {
         try {
+            // Rate limiting
+            $key = 'inquiry:' . $request->ip();
+            $maxAttempts = 5;
+            $decayMinutes = 60;
+            
+            if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+                $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($key);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Too many requests. Please try again in ' . ceil($seconds / 60) . ' minutes.'
+                ], 429);
+            }
+            
+            \Illuminate\Support\Facades\RateLimiter::hit($key, $decayMinutes * 60);
+
             $validated = $request->validate([
-                'plan' => 'required|string',
-                'email' => 'required|email',
-                'phone' => 'required|string',
-                'name' => 'nullable|string',
-                'message' => 'nullable|string',
+                'plan' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'phone' => 'required|string|max:255',
+                'name' => 'nullable|string|max:255',
+                'message' => 'nullable|string|max:2000',
+            ]);
+
+            // Store inquiry in database
+            $inquiry = \App\Models\Inquiry::create([
+                'name' => $validated['name'] ?? null,
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'plan' => $validated['plan'],
+                'message' => $validated['message'] ?? null,
+                'approved' => false,
             ]);
 
             // Attempt to send email
@@ -31,6 +56,7 @@ class InquiryController extends Controller
                     'phone' => $validated['phone'],
                     'name' => $validated['name'] ?? null,
                     'inquiryMessage' => $validated['message'] ?? null,
+                    'inquiryId' => $inquiry->id,
                 ];
                 
                 // Get recipient email from config (MAIL_FROM_ADDRESS or fallback)
@@ -51,7 +77,7 @@ class InquiryController extends Controller
                 
                 return response()->json([
                     'success' => true, 
-                    'message' => 'Inquiry sent successfully!'
+                    'message' => 'Your request has been sent. You will be contacted shortly.'
                 ]);
             } catch (\Exception $e) {
                 // Log the detailed error

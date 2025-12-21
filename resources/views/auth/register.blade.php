@@ -21,8 +21,23 @@
                     <p class="mt-2 text-xs sm:text-sm text-gray-600">Join us and start your fitness journey</p>
                 </div>
 
+                @if(isset($error) && !isset($inquiry))
+                    <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-lg">
+                        <p class="text-red-800 text-sm">{{ $error }}</p>
+                    </div>
+                @endif
+
+                @if(isset($inquiry))
+                    <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-400 rounded-lg">
+                        <p class="text-green-800 text-sm font-semibold mb-1">Welcome! Your inquiry for <strong>{{ $inquiry->plan }}</strong> has been approved.</p>
+                        <p class="text-green-700 text-xs">Please complete your registration below.</p>
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ route('register') }}" class="space-y-6">
                     @csrf
+                    
+                    <input type="hidden" name="token" value="{{ $token ?? old('token') }}">
 
                     <!-- Name -->
                     <div>
@@ -46,11 +61,15 @@
                         <input id="email" 
                                type="email" 
                                name="email" 
-                               value="{{ old('email') }}" 
+                               value="{{ isset($inquiry) ? $inquiry->email : old('email') }}" 
                                required 
                                autocomplete="username"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200">
+                               {{ isset($inquiry) ? 'readonly' : '' }}
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200 {{ isset($inquiry) ? 'bg-gray-100' : '' }}">
                         @error('email')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        @error('token')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
