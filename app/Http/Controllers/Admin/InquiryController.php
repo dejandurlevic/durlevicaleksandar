@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class InquiryController extends Controller
 {
@@ -54,8 +55,34 @@ class InquiryController extends Controller
             session()->flash('registration_url', $registrationUrl);
             session()->flash('approved_inquiry_id', $inquiry->id);
 
+            // Send email to user with registration link
+            try {
+                $emailData = [
+                    'name' => $inquiry->name ?? 'User',
+                    'plan' => $inquiry->plan,
+                    'registrationUrl' => $registrationUrl,
+                ];
+
+                Mail::send('emails.registration-invite', $emailData, function ($mail) use ($inquiry) {
+                    $mail->to($inquiry->email)
+                        ->subject('Your Registration Invitation - FitCoachAleksandar');
+                });
+
+                Log::info('Registration invite email sent', [
+                    'email' => $inquiry->email,
+                    'inquiry_id' => $inquiry->id
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to send registration invite email', [
+                    'error' => $e->getMessage(),
+                    'email' => $inquiry->email,
+                    'inquiry_id' => $inquiry->id
+                ]);
+                // Continue even if email fails - admin can still copy the link
+            }
+
             return redirect()->route('admin.inquiries.index')
-                ->with('success', 'Inquiry approved successfully. Registration link generated.');
+                ->with('success', 'Inquiry approved successfully. Registration link generated and sent to user via email.');
         } catch (\Exception $e) {
             return redirect()->route('admin.inquiries.index')
                 ->with('error', 'Failed to approve inquiry: ' . $e->getMessage());

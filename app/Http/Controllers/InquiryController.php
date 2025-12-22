@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Inquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +21,16 @@ class InquiryController extends Controller
                 'phone' => 'required|string',
                 'name' => 'nullable|string',
                 'message' => 'nullable|string',
+            ]);
+
+            // Save inquiry to database
+            $inquiry = Inquiry::create([
+                'name' => $validated['name'] ?? null,
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'plan' => $validated['plan'],
+                'message' => $validated['message'] ?? null,
+                'approved' => false,
             ]);
 
             // Attempt to send email
@@ -46,12 +57,13 @@ class InquiryController extends Controller
                     'from_email' => $validated['email'],
                     'plan' => $validated['plan'],
                     'name' => $validated['name'] ?? 'Not provided',
-                    'phone' => $validated['phone']
+                    'phone' => $validated['phone'],
+                    'inquiry_id' => $inquiry->id
                 ]);
                 
                 return response()->json([
                     'success' => true, 
-                    'message' => 'Inquiry sent successfully!'
+                    'message' => 'Inquiry sent successfully! Your request has been received and is pending approval.'
                 ]);
             } catch (\Exception $e) {
                 // Log the detailed error
