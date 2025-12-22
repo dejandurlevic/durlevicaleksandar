@@ -136,6 +136,30 @@
                     </div>
                 @endif
 
+                @if(session('registration_url'))
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-lg">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-blue-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            </svg>
+                            <div class="flex-1">
+                                <p class="text-blue-800 font-semibold mb-2">Registration Link Generated:</p>
+                                <div class="bg-white p-3 rounded border border-blue-200 mb-3">
+                                    <input type="text" 
+                                           id="registrationUrl" 
+                                           value="{{ session('registration_url') }}" 
+                                           readonly 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono break-all">
+                                </div>
+                                <button onclick="copyRegistrationUrl()" 
+                                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold">
+                                    Copy Link
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 @if($inquiries->count() > 0)
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <div class="overflow-x-auto">
@@ -198,6 +222,26 @@
             </div>
         </main>
     </div>
+
+    <script>
+        function copyRegistrationUrl() {
+            const urlInput = document.getElementById('registrationUrl');
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                document.execCommand('copy');
+                alert('Registration link copied to clipboard!');
+            } catch (err) {
+                // Fallback for modern browsers
+                navigator.clipboard.writeText(urlInput.value).then(function() {
+                    alert('Registration link copied to clipboard!');
+                }, function(err) {
+                    alert('Failed to copy. Please select and copy manually.');
+                });
+            }
+        }
+    </script>
 </body>
 </html>
 
