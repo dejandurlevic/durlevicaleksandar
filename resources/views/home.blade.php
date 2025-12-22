@@ -7,6 +7,7 @@
     <title>{{ config('app.name', 'Laravel') }} - Premium Fitness Training</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         @keyframes fadeInUp {
@@ -43,26 +44,62 @@
 </head>
 <body class="font-sans antialiased bg-white">
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100" x-data="{ mobileMenuOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <a href="{{ route('home') }}" class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                FitCoachAleksandar
+            <div class="flex justify-between items-center h-16 sm:h-20">
+                <a href="{{ route('home') }}" class="text-lg sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent break-words">
+                    FitCoachAleksandar
                 </a>
-                <div class="flex items-center gap-6">
-                    <a href="{{ route('about') }}" class="text-gray-700 hover:text-gray-900 font-semibold transition-colors duration-200">
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center gap-4 lg:gap-6">
+                    <a href="{{ route('about') }}" class="text-gray-700 hover:text-gray-900 font-semibold transition-colors duration-200 text-sm lg:text-base">
                         About Me
                     </a>
                     @auth
-                        <a href="{{ route('dashboard') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                        <a href="{{ route('dashboard') }}" class="px-4 lg:px-6 py-2 lg:py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm lg:text-base">
                             Dashboard
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                        <a href="{{ route('login') }}" class="px-4 lg:px-6 py-2 lg:py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm lg:text-base">
                             Login
                         </a>
-
-                        <a href="{{ route('register') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                        <a href="{{ route('register') }}" class="px-4 lg:px-6 py-2 lg:py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm lg:text-base">
+                            Register
+                        </a>
+                    @endauth
+                </div>
+                <!-- Mobile Menu Button -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-gray-700 hover:text-gray-900 p-2">
+                    <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    <svg x-show="mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Mobile Menu -->
+            <div x-show="mobileMenuOpen" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 -translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 -translate-y-1"
+                 class="md:hidden pb-4 border-t border-gray-200 mt-2">
+                <div class="flex flex-col gap-3 pt-4">
+                    <a href="{{ route('about') }}" class="text-gray-700 hover:text-gray-900 font-semibold transition-colors duration-200 text-center py-2">
+                        About Me
+                    </a>
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 text-center">
+                            Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 text-center">
+                            Login
+                        </a>
+                        <a href="{{ route('register') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 text-center">
                             Register
                         </a>
                     @endauth
@@ -72,47 +109,47 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="relative min-h-screen flex items-center pt-20 overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <section class="relative min-h-screen flex items-center pt-16 sm:pt-20 overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-50">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.03),transparent_50%)]"></div>
         
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
                 <!-- Left: Content -->
-                <div class="animate-fade-in-up">
-                    <div class="inline-block px-4 py-1.5 bg-gray-100 rounded-full text-sm font-semibold text-gray-700 mb-8 animate-fade-in-up animate-delay-100">
+                <div class="animate-fade-in-up text-center lg:text-left">
+                    <div class="inline-block px-3 sm:px-4 py-1.5 bg-gray-100 rounded-full text-xs sm:text-sm font-semibold text-gray-700 mb-6 sm:mb-8 animate-fade-in-up animate-delay-100">
                         Premium Fitness Training
                     </div>
-                    <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight text-gray-900 animate-fade-in-up animate-delay-200">
-                        Transform Your Body.<br>
-                        <span class="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                            Train Smarter.
-                        </span><br>
-                        <span class="bg-gradient-to-r from-gray-700 to-gray-500 bg-clip-text text-transparent">
-                            Feel Stronger.
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight mb-4 sm:mb-6 leading-tight text-gray-900 animate-fade-in-up animate-delay-200 break-words">
+                        <span class="block">Трансформишите своје тело.</span>
+                        <span class="block bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                            Тренирајте паметније.
+                        </span>
+                        <span class="block bg-gradient-to-r from-gray-700 to-gray-500 bg-clip-text text-transparent">
+                            Осећајте се јаче.
                         </span>
                     </h1>
-                    <p class="text-xl text-gray-600 max-w-2xl mb-10 leading-relaxed animate-fade-in-up animate-delay-300">
-                        Personalized workout programs, video training library, progress tracking and direct access to your trainer — all in one platform.
+                    <p class="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto lg:mx-0 mb-8 sm:mb-10 leading-relaxed animate-fade-in-up animate-delay-300 break-words">
+                        Персонализовани програми вежбања, видео библиотека тренинга, праћење напретка и директан приступ вашем тренеру — све на једној платформи.
                     </p>
-                    <div class="flex flex-wrap gap-4 animate-fade-in-up animate-delay-400">
-                        <a href="#pricing" class="px-8 py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                    <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center lg:justify-start animate-fade-in-up animate-delay-400">
+                        <a href="#pricing" class="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl font-bold text-base sm:text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-center">
                             Start Training
                         </a>
-                        <a href="#services" class="px-8 py-4 bg-white border-2 border-gray-300 text-gray-900 rounded-xl font-bold text-lg hover:border-gray-900 hover:shadow-xl transition-all duration-300">
+                        <a href="#services" class="px-6 sm:px-8 py-3 sm:py-4 bg-white border-2 border-gray-300 text-gray-900 rounded-xl font-bold text-base sm:text-lg hover:border-gray-900 hover:shadow-xl transition-all duration-300 text-center">
                             Learn More
                         </a>
                     </div>
                 </div>
                 
                 <!-- Right: Trainer Image -->
-                <div class="relative animate-fade-in-up animate-delay-300">
+                <div class="relative animate-fade-in-up animate-delay-300 mt-8 lg:mt-0">
                     <div class="relative">
-                        <div class="absolute -inset-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-3xl blur-2xl opacity-50"></div>
-                        <img src="{{ $trainer['photo'] }}" alt="{{ $trainer['name'] }}" class="relative rounded-3xl shadow-2xl w-full max-w-lg mx-auto transform hover:scale-105 transition-transform duration-500">
+                        <div class="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl sm:rounded-3xl blur-2xl opacity-50"></div>
+                        <img src="{{ $trainer['photo'] }}" alt="{{ $trainer['name'] }}" class="relative rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg mx-auto transform hover:scale-105 transition-transform duration-500">
                     </div>
-                    <div class="absolute -bottom-6 -left-6 bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
-                        <div class="text-2xl font-bold text-gray-900 mb-1">{{ $trainer['name'] }}</div>
-                        <div class="text-sm text-gray-600">Certified Fitness Trainer</div>
+                    <div class="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-100">
+                        <div class="text-lg sm:text-2xl font-bold text-gray-900 mb-1 break-words">{{ $trainer['name'] }}</div>
+                        <div class="text-xs sm:text-sm text-gray-600">Certified Fitness Trainer</div>
                     </div>
                 </div>
             </div>
@@ -120,46 +157,46 @@
     </section>
 
     <!-- Inquiry Popup -->
-    <div id="inquiryPopup" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50 p-4">
-        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl animate-fade-in relative">
+    <div id="inquiryPopup" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50 p-4 overflow-y-auto">
+        <div class="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl animate-fade-in relative my-4 sm:my-8">
             <button type="button" onclick="hidePopup()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
 
-            <h2 class="text-3xl font-bold mb-2 text-gray-900">Send Inquiry</h2>
-            <p class="text-gray-600 mb-6">Get in touch about your selected plan</p>
+            <h2 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-900 break-words">Send Inquiry</h2>
+            <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 break-words">Get in touch about your selected plan</p>
 
-            <form id="inquiryForm" class="space-y-4">
+            <form id="inquiryForm" class="space-y-3 sm:space-y-4">
                 @csrf
                 <input type="hidden" name="plan" id="selectedPlan">
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
-                    <input type="email" name="email" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200">
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
+                    <input type="email" name="email" required class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200 text-sm sm:text-base">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Phone <span class="text-red-500">*</span></label>
-                    <input type="text" name="phone" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200">
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">Phone <span class="text-red-500">*</span></label>
+                    <input type="text" name="phone" required class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200 text-sm sm:text-base">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Name (optional)</label>
-                    <input type="text" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200">
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">Name (optional)</label>
+                    <input type="text" name="name" class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200 text-sm sm:text-base">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Message (optional)</label>
-                    <textarea name="message" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200"></textarea>
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">Message (optional)</label>
+                    <textarea name="message" rows="4" class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition duration-200 text-sm sm:text-base resize-none"></textarea>
                 </div>
 
-                <div class="flex gap-3 pt-2">
-                    <button type="submit" class="flex-1 bg-gradient-to-r from-gray-900 to-gray-800 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-gray-900 to-gray-800 text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-bold hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base">
                         Send Inquiry
                     </button>
-                    <button type="button" onclick="hidePopup()" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors duration-200">
+                    <button type="button" onclick="hidePopup()" class="px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-100 text-gray-700 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-200 transition-colors duration-200 text-sm sm:text-base">
                         Cancel
                     </button>
                 </div>
@@ -168,32 +205,32 @@
     </div>
 
     <!-- About Trainer Section -->
-    <section class="py-24 bg-white border-t border-gray-100">
+    <section class="py-12 sm:py-16 lg:py-24 bg-white border-t border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                <div class="relative group">
-                    <div class="absolute -inset-2 bg-gradient-to-r from-gray-200 to-gray-300 rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-                    <img src="{{ $trainer['photo_all'] }}" alt="{{ $trainer['name'] }}" class="relative rounded-3xl shadow-xl w-full object-cover h-[500px]">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-center">
+                <div class="relative group order-2 md:order-1">
+                    <div class="absolute -inset-2 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl sm:rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+                    <img src="{{ $trainer['photo_all'] }}" alt="{{ $trainer['name'] }}" class="relative rounded-2xl sm:rounded-3xl shadow-xl w-full object-cover h-[300px] sm:h-[400px] lg:h-[500px]">
                 </div>
                 
-                <div>
-                    <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 text-gray-900">Your Trainer</h2>
-                    <p class="text-lg text-gray-600 leading-relaxed mb-8">
+                <div class="order-1 md:order-2 text-center md:text-left">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-4 sm:mb-6 text-gray-900 break-words">Ваш тренер</h2>
+                    <p class="text-base sm:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8 break-words">
                         {{ $trainer['bio'] }}
                     </p>
                     
-                    <div class="grid grid-cols-3 gap-8">
-                        <div class="text-center p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-300">
-                            <div class="text-4xl font-extrabold text-gray-900 mb-2">{{ $trainer['clients_count'] }}+</div>
-                            <div class="text-sm font-semibold text-gray-600">Active Clients</div>
+                    <div class="grid grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                        <div class="text-center p-4 sm:p-6 bg-gray-50 rounded-xl sm:rounded-2xl hover:bg-gray-100 transition-colors duration-300">
+                            <div class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-1 sm:mb-2">{{ $trainer['clients_count'] }}+</div>
+                            <div class="text-xs sm:text-sm font-semibold text-gray-600 break-words">Active Clients</div>
                         </div>
-                        <div class="text-center p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-300">
-                            <div class="text-4xl font-extrabold text-gray-900 mb-2">{{ $trainer['experience_years'] }}+</div>
-                            <div class="text-sm font-semibold text-gray-600">Years Experience</div>
+                        <div class="text-center p-4 sm:p-6 bg-gray-50 rounded-xl sm:rounded-2xl hover:bg-gray-100 transition-colors duration-300">
+                            <div class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-1 sm:mb-2">{{ $trainer['experience_years'] }}+</div>
+                            <div class="text-xs sm:text-sm font-semibold text-gray-600 break-words">Years Experience</div>
                         </div>
-                        <div class="text-center p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-300">
-                            <div class="text-4xl font-extrabold text-gray-900 mb-2">20+</div>
-                            <div class="text-sm font-semibold text-gray-600">Training Videos</div>
+                        <div class="text-center p-4 sm:p-6 bg-gray-50 rounded-xl sm:rounded-2xl hover:bg-gray-100 transition-colors duration-300">
+                            <div class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-1 sm:mb-2">20+</div>
+                            <div class="text-xs sm:text-sm font-semibold text-gray-600 break-words">Training Videos</div>
                         </div>
                     </div>
                 </div>
@@ -202,14 +239,14 @@
     </section>
 
     <!-- Services Section -->
-    <section id="services" class="py-24 bg-gradient-to-b from-white to-gray-50">
+    <section id="services" class="py-12 sm:py-16 lg:py-24 bg-gradient-to-b from-white to-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">What You Get</h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Comprehensive fitness solutions tailored to your unique goals</p>
+            <div class="text-center mb-8 sm:mb-12 lg:mb-16">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-3 sm:mb-4 text-gray-900 break-words">What You Get</h2>
+                <p class="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto break-words px-4">Comprehensive fitness solutions tailored to your unique goals</p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 @php
                     $serviceData = [
                         'Програми обуке' => [
@@ -244,16 +281,16 @@
                     @php
                         $data = $serviceData[$service] ?? ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>', 'desc' => 'Professional service tailored to your fitness goals.'];
                     @endphp
-                    <div class="group relative bg-white p-8 rounded-2xl border-2 border-gray-100 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                    <div class="group relative bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl border-2 border-gray-100 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl"></div>
                         <div class="relative">
-                            <div class="w-16 h-16 bg-gradient-to-br from-gray-900 to-gray-700 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300 mx-auto md:mx-0">
+                                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     {!! $data['icon'] !!}
                                 </svg>
                             </div>
-                            <h3 class="text-2xl font-bold text-gray-900 mb-3">{{ $service }}</h3>
-                            <p class="text-gray-600 leading-relaxed">{{ $data['desc'] }}</p>
+                            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 text-center md:text-left break-words">{{ $service }}</h3>
+                            <p class="text-sm sm:text-base text-gray-600 leading-relaxed text-center md:text-left break-words">{{ $data['desc'] }}</p>
                         </div>
                     </div>
                 @endforeach
@@ -262,127 +299,125 @@
     </section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="py-24 bg-white border-t border-gray-100">
+    <section id="pricing" class="py-12 sm:py-16 lg:py-24 bg-white border-t border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-gray-900">Изазов за глутеус</h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Изаберите план који одговара вашем фитнес путовању
-
-</p>
+            <div class="text-center mb-8 sm:mb-12 lg:mb-16">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-3 sm:mb-4 text-gray-900 break-words">Изазов за глутеус</h2>
+                <p class="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto break-words px-4">Изаберите план који одговара вашем фитнес путовању</p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
                 <!-- Basic Plan -->
-                <div class="bg-white rounded-3xl shadow-lg p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
-                    <div class="mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Планови оброка</h3>
-                        <p class="text-gray-600 mb-6">Идеално само за планове оброка</p>
-                        <div class="mb-6">
-                            <span class="text-5xl font-extrabold text-gray-900">€35</span>
-                            <span class="text-gray-600 text-lg">/month</span>
+                <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-6 sm:p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+                    <div class="mb-6 sm:mb-8">
+                        <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">Планови оброка</h3>
+                        <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 break-words">Идеално само за планове оброка</p>
+                        <div class="mb-4 sm:mb-6">
+                            <span class="text-4xl sm:text-5xl font-extrabold text-gray-900">€35</span>
+                            <span class="text-gray-600 text-base sm:text-lg">/month</span>
                         </div>
                     </div>
-                    <ul class="space-y-4 mb-8 flex-grow">
+                    <ul class="space-y-3 sm:space-y-4 mb-6 sm:mb-8 flex-grow">
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Progress Tracking</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium break-words">Progress Tracking</span>
                         </li>
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Недељне провере</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium break-words">Недељне провере</span>
                         </li>
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Директни chat са тренером</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium break-words">Директни chat са тренером</span>
                         </li>
                     </ul>
-                    <button type="button" onclick="showPopup('Basic Plan')" class="block w-full bg-gray-100 text-gray-900 py-4 rounded-xl font-bold text-center hover:bg-gray-200 transition-colors duration-200">
+                    <button type="button" onclick="showPopup('Basic Plan')" class="block w-full bg-gray-100 text-gray-900 py-3 sm:py-4 rounded-xl font-bold text-center hover:bg-gray-200 transition-colors duration-200 text-sm sm:text-base">
                         Choose Plan
                     </button>
                 </div>
 
                 <!-- Standard Plan - Most Popular -->
-                <div class="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl shadow-2xl p-8 border-4 border-gray-700 transform scale-105 z-10 flex flex-col">
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">MOST POPULAR</span>
+                <div class="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 border-2 sm:border-4 border-gray-700 transform md:scale-105 z-10 flex flex-col">
+                    <div class="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2">
+                        <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-lg">MOST POPULAR</span>
                     </div>
-                    <div class="mb-8 text-white">
-                        <h3 class="text-2xl font-bold mb-2">Видео снимци за тренинг и планови оброка</h3>
-                        <p class="text-gray-300 mb-6">Најбоља вредност за озбиљне спортисте</p>
-                        <div class="mb-6">
-                            <span class="text-5xl font-extrabold">€49</span>
-                            <span class="text-gray-300 text-lg">/month</span>
+                    <div class="mb-6 sm:mb-8 text-white">
+                        <h3 class="text-xl sm:text-2xl font-bold mb-2 break-words">Видео снимци за тренинг и планови оброка</h3>
+                        <p class="text-sm sm:text-base text-gray-300 mb-4 sm:mb-6 break-words">Најбоља вредност за озбиљне спортисте</p>
+                        <div class="mb-4 sm:mb-6">
+                            <span class="text-4xl sm:text-5xl font-extrabold">€49</span>
+                            <span class="text-gray-300 text-base sm:text-lg">/month</span>
                         </div>
                     </div>
-                    <ul class="space-y-4 mb-8 flex-grow text-white">
+                    <ul class="space-y-3 sm:space-y-4 mb-6 sm:mb-8 flex-grow text-white">
                     <li class="flex items-start">
-                            <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">All Access</span>
+                            <span class="text-sm sm:text-base font-medium break-words">All Access</span>
                         </li>
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">Full Video Library</span>
+                            <span class="text-sm sm:text-base font-medium break-words">Full Video Library</span>
                         </li>
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">Priority Support</span>
+                            <span class="text-sm sm:text-base font-medium break-words">Priority Support</span>
                         </li>
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-yellow-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="font-medium">Progress Tracking</span>
+                            <span class="text-sm sm:text-base font-medium break-words">Progress Tracking</span>
                         </li>
                     </ul>
-                    <button type="button" onclick="showPopup('Standard Plan')" class="block w-full bg-white text-gray-900 py-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors duration-200 shadow-lg">
+                    <button type="button" onclick="showPopup('Standard Plan')" class="block w-full bg-white text-gray-900 py-3 sm:py-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors duration-200 shadow-lg text-sm sm:text-base">
                         Choose Plan
                     </button>
                 </div>
 
                 <!-- Premium Plan -->
-                <div class="bg-white rounded-3xl shadow-lg p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
-                    <div class="mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Training Videos</h3>
-                        <p class="text-gray-600 mb-6">Ultimate fitness trening</p>
-                        <div class="mb-6">
-                            <span class="text-5xl font-extrabold text-gray-900">€39</span>
-                            <span class="text-gray-600 text-lg">/month</span>
+                <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-6 sm:p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
+                    <div class="mb-6 sm:mb-8">
+                        <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">Training Videos</h3>
+                        <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 break-words">Ultimate fitness trening</p>
+                        <div class="mb-4 sm:mb-6">
+                            <span class="text-4xl sm:text-5xl font-extrabold text-gray-900">€39</span>
+                            <span class="text-gray-600 text-base sm:text-lg">/month</span>
                         </div>
                     </div>
-                    <ul class="space-y-4 mb-8 flex-grow">
+                    <ul class="space-y-3 sm:space-y-4 mb-6 sm:mb-8 flex-grow">
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Full Video Library</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium break-words">Full Video Library</span>
                         </li>
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Workout Videos for Glute</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium break-words">Workout Videos for Glute</span>
                         </li>
             
                         <li class="flex items-start">
-                            <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-gray-700 font-medium">Email Support</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium break-words">Email Support</span>
                         </li>
                     </ul>
-                    <button type="button" onclick="showPopup('Premium Plan')" class="block w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white py-4 rounded-xl font-bold text-center hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+                    <button type="button" onclick="showPopup('Premium Plan')" class="block w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white py-3 sm:py-4 rounded-xl font-bold text-center hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base">
                         Choose Plan
                     </button>
                 </div>
