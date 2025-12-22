@@ -24,10 +24,17 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Authenticate with remember me support
+        // The remember parameter is already handled in LoginRequest->authenticate()
+        // which calls Auth::attempt() with the remember flag
         $request->authenticate();
 
         $request->session()->regenerate();
 
+        // When remember me is checked, Laravel automatically sets a remember cookie
+        // that persists for 2 weeks (configurable in config/auth.php)
+        // The session will also be extended based on the remember cookie
+        
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

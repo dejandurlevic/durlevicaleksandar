@@ -7,6 +7,7 @@ use App\Models\Video;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class VideoController extends Controller
@@ -47,12 +48,24 @@ class VideoController extends Controller
         ]);
 
         try {
+            Log::info('Video upload started', [
+                'title' => $validated['title'],
+                'category_id' => $validated['category_id'],
+                'video_size' => $request->file('video')->getSize(),
+            ]);
+
             // Upload video to S3
             $videoFile = $request->file('video');
             // Generate unique filename to prevent conflicts
             $videoFileName = 'videos/' . Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
+            
+            Log::info('Uploading video to S3', ['filename' => $videoFileName]);
+            
             // Upload to S3 and get the path
             $videoPath = Storage::disk('s3')->putFileAs('', $videoFile, $videoFileName);
+            
+            Log::info('Video uploaded to S3', ['path' => $videoPath]);
+            
             // Set video as private (not publicly accessible)
             Storage::disk('s3')->setVisibility($videoPath, 'private');
             
@@ -66,21 +79,45 @@ class VideoController extends Controller
                 $thumbnailPath = Storage::disk('s3')->putFileAs('', $thumbnailFile, $thumbnailFileName);
                 // Set thumbnail as public (can be accessed directly)
                 Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
+                
+                Log::info('Thumbnail uploaded to S3', ['path' => $thumbnailPath]);
             }
 
             // Create video record
-            Video::create([
+            $videoData = [
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
                 'video_path' => $videoPath,
                 'thumbnail' => $thumbnailPath,
                 'category_id' => $validated['category_id'],
                 'is_premium' => $request->has('is_premium') ? true : false,
+            ];
+            
+            Log::info('Creating video record in database', $videoData);
+            
+            $video = Video::create($videoData);
+            
+            // Verify the video was actually saved
+            $savedVideo = Video::find($video->id);
+            if (!$savedVideo) {
+                throw new \Exception('Video was not saved to database after creation');
+            }
+            
+            Log::info('Video created successfully', [
+                'video_id' => $video->id, 
+                'video_path' => $video->video_path,
+                'database_verified' => true
             ]);
 
             return redirect()->route('admin.videos.index')
                 ->with('success', 'Video uploaded successfully.');
         } catch (\Exception $e) {
+            Log::error('Video upload failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'title' => $validated['title'] ?? null,
+            ]);
+            
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Failed to upload video: ' . $e->getMessage());
