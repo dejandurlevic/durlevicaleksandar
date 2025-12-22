@@ -21,7 +21,6 @@ class AboutController extends Controller
                 'Training Programs',
                 'Meal Plans',
                 '1-on-1 Coaching',
-                'Group Fitness Classes',
                 'Nutrition Counseling',
                 'Online Training'
             ]

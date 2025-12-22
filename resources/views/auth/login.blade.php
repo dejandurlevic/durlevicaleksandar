@@ -85,7 +85,10 @@
 
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-600">
-                        Registration is by invitation only. Please submit an inquiry to get started.
+                        Don't have an account?
+                        <a href="{{ route('register') }}" class="font-semibold text-gray-900 hover:text-gray-700">
+                            Sign up
+                        </a>
                     </p>
                 </div>
 

@@ -3,91 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Inquiry;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
 
 class InquiryController extends Controller
 {
-    /**
-     * Display a listing of inquiries.
-     */
-    public function index()
-    {
-        $inquiries = Inquiry::latest()->paginate(15);
-        $pendingCount = Inquiry::where('approved', false)->count();
-        return view('admin.inquiries.index', compact('inquiries', 'pendingCount'));
-    }
-
-    /**
-     * Approve an inquiry and send invite email.
-     */
-    public function approve(Inquiry $inquiry)
-    {
-        if ($inquiry->approved) {
-            return redirect()->route('admin.inquiries.index')
-                ->with('error', 'This inquiry has already been approved.');
-        }
-
-        // Generate invite token
-        $token = $inquiry->generateInviteToken();
-
-        // Update inquiry
-        $inquiry->update([
-            'approved' => true,
-            'approved_at' => now(),
-        ]);
-
-        // Generate registration URL
-        $registrationUrl = route('register', ['token' => $token]);
-        
-        // Send approval email with registration link
-        $emailSent = false;
-        try {
-            Mail::send('emails.inquiry-approved', [
-                'name' => $inquiry->name ?? 'there',
-                'plan' => $inquiry->plan,
-                'registrationUrl' => $registrationUrl,
-            ], function ($mail) use ($inquiry) {
-                $mail->to($inquiry->email)
-                    ->subject('Your Registration Invitation - FitCoachAleksandar');
-            });
-            
-            $emailSent = true;
-            Log::info('Approval email sent successfully', [
-                'inquiry_id' => $inquiry->id,
-                'email' => $inquiry->email,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send approval email', [
-                'inquiry_id' => $inquiry->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-
-        // Always show the registration URL so admin can copy it
-        if ($emailSent) {
-            return redirect()->route('admin.inquiries.index')
-                ->with('success', 'Inquiry approved and invitation email sent successfully.')
-                ->with('registration_url', $registrationUrl)
-                ->with('inquiry_id', $inquiry->id);
-        } else {
-            return redirect()->route('admin.inquiries.index')
-                ->with('error', 'Inquiry approved but email failed to send. Please copy the registration link below and send it manually.')
-                ->with('registration_url', $registrationUrl)
-                ->with('inquiry_id', $inquiry->id);
-        }
-    }
-
-    /**
-     * Delete an inquiry.
-     */
-    public function destroy(Inquiry $inquiry)
-    {
-        $inquiry->delete();
-
-        return redirect()->route('admin.inquiries.index')
-            ->with('success', 'Inquiry deleted successfully.');
-    }
+    //
 }

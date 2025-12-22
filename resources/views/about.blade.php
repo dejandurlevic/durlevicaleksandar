@@ -7,65 +7,30 @@
     <title>About Me - {{ config('app.name', 'Laravel') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased bg-white">
     <!-- Navigation -->
-    <nav x-data="{ mobileMenuOpen: false }" class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
-                <a href="{{ route('home') }}" class="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                <a href="{{ route('home') }}" class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                     FitCoachAleksandar
                 </a>
-                
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center gap-4 lg:gap-6">
+                <div class="flex items-center gap-6">
                     <a href="{{ route('about') }}" class="text-gray-700 hover:text-gray-900 font-semibold transition-colors duration-200 border-b-2 border-gray-900">
                         About Me
                     </a>
                     @auth
-                        <a href="{{ route('dashboard') }}" class="px-4 lg:px-6 py-2 lg:py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm lg:text-base">
+                        <a href="{{ route('dashboard') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
                             Dashboard
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="px-4 lg:px-6 py-2 lg:py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm lg:text-base">
+                        <a href="{{ route('login') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
                             Login
                         </a>
-                    @endauth
-                </div>
-
-                <!-- Mobile Menu Button -->
-                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 text-gray-700 hover:text-gray-900 transition-colors">
-                    <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                    <svg x-show="mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Mobile Navigation Menu -->
-            <div x-show="mobileMenuOpen" 
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 transform -translate-y-2"
-                 x-transition:enter-end="opacity-100 transform translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 transform translate-y-0"
-                 x-transition:leave-end="opacity-0 transform -translate-y-2"
-                 class="md:hidden pb-4 border-t border-gray-200 mt-2">
-                <div class="flex flex-col gap-3 pt-4">
-                    <a href="{{ route('about') }}" class="text-gray-700 hover:text-gray-900 font-semibold transition-colors duration-200 border-b-2 border-gray-900 px-2 py-2">
-                        About Me
-                    </a>
-                    @auth
-                        <a href="{{ route('dashboard') }}" class="px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 text-center">
-                            Dashboard
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}" class="px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 text-center">
-                            Login
+                        <a href="{{ route('register') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                            Register
                         </a>
                     @endauth
                 </div>
@@ -113,7 +78,7 @@
                             <div class="text-sm font-semibold text-gray-600">Years Experience</div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                            <div class="text-4xl font-extrabold text-gray-900 mb-2">20+</div>
+                            <div class="text-4xl font-extrabold text-gray-900 mb-2">2000+</div>
                             <div class="text-sm font-semibold text-gray-600">Training Videos</div>
                         </div>
                     </div>

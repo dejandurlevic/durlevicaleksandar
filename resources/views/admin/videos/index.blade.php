@@ -9,6 +9,9 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @php
+        use Illuminate\Support\Facades\Storage;
+    @endphp
 </head>
 <body class="font-sans antialiased bg-gray-50" x-data="{ sidebarOpen: false }">
     <div class="min-h-screen flex">
@@ -167,7 +170,23 @@
                                             <td class="px-3 sm:px-6 py-4">
                                                 <div class="flex items-center">
                                                     @if($video->thumbnail)
-                                                        <img src="{{ $video->thumbnail }}" alt="{{ $video->title }}" class="h-10 w-16 sm:h-12 sm:w-20 object-cover rounded-lg mr-2 sm:mr-4 flex-shrink-0">
+                                                        @php
+                                                            // Generate presigned URL for thumbnail if it's on S3 (not a full URL)
+                                                            try {
+                                                                if (filter_var($video->thumbnail, FILTER_VALIDATE_URL)) {
+                                                                    // It's already a full URL
+                                                                    $thumbnailUrl = $video->thumbnail;
+                                                                } elseif (Storage::disk('s3')->exists($video->thumbnail)) {
+                                                                    // It's an S3 path, generate presigned URL
+                                                                    $thumbnailUrl = Storage::disk('s3')->temporaryUrl($video->thumbnail, now()->addMinutes(60));
+                                                                } else {
+                                                                    $thumbnailUrl = $video->thumbnail;
+                                                                }
+                                                            } catch (\Exception $e) {
+                                                                $thumbnailUrl = $video->thumbnail;
+                                                            }
+                                                        @endphp
+                                                        <img src="{{ $thumbnailUrl }}" alt="{{ $video->title }}" class="h-10 w-16 sm:h-12 sm:w-20 object-cover rounded-lg mr-2 sm:mr-4 flex-shrink-0">
                                                     @else
                                                         <div class="h-10 w-16 sm:h-12 sm:w-20 bg-gray-200 rounded-lg mr-2 sm:mr-4 flex items-center justify-center flex-shrink-0">
                                                             <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,13 +224,14 @@
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium" onclick="event.stopPropagation();">
                                                 <div class="flex items-center justify-end space-x-2 sm:space-x-3">
-                                                    <a href="{{ route('admin.videos.edit', $video) }}" class="text-indigo-600 hover:text-indigo-900 font-semibold hidden lg:inline">
-                                                        Edit
-                                                    </a>
-                                                    <form action="{{ route('admin.videos.destroy', $video) }}" method="POST" class="inline hidden lg:inline" onsubmit="return confirm('Are you sure you want to delete this video?');">
+                                                    <button onclick="previewVideo({{ $video->id }}, '{{ $video->title }}')" 
+                                                            class="text-blue-600 hover:text-blue-900 font-semibold text-xs sm:text-sm">
+                                                        Preview
+                                                    </button>
+                                                    <form action="{{ route('admin.videos.destroy', $video) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this video? This will permanently delete the video file from S3.');">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900 font-semibold">
+                                                        <button type="submit" class="text-red-600 hover:text-red-900 font-semibold text-xs sm:text-sm">
                                                             Delete
                                                         </button>
                                                     </form>
@@ -243,6 +263,101 @@
             </div>
         </main>
     </div>
+
+    <!-- Video Preview Modal -->
+    <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center" style="display: none;">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 my-8" style="max-height: 90vh; overflow-y: auto;">
+            <div class="p-4 sm:p-6 border-b border-gray-200 flex items-center justify-between">
+                <h3 id="previewTitle" class="text-lg sm:text-xl font-bold text-gray-900"></h3>
+                <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-4 sm:p-6">
+                <div id="previewLoading" class="text-center py-8">
+                    <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="mt-4 text-gray-600">Loading video...</p>
+                </div>
+                <div id="previewError" class="hidden text-center py-8">
+                    <svg class="w-12 h-12 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="text-red-600 font-medium">Failed to load video preview</p>
+                </div>
+                <video id="previewVideo" class="hidden w-full rounded-lg" controls style="max-height: 70vh;">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function previewVideo(videoId, title) {
+            const modal = document.getElementById('previewModal');
+            const previewTitle = document.getElementById('previewTitle');
+            const previewVideo = document.getElementById('previewVideo');
+            const previewLoading = document.getElementById('previewLoading');
+            const previewError = document.getElementById('previewError');
+            
+            // Show modal
+            modal.style.display = 'flex';
+            previewTitle.textContent = title;
+            previewLoading.classList.remove('hidden');
+            previewError.classList.add('hidden');
+            previewVideo.classList.add('hidden');
+            previewVideo.src = '';
+            
+            // Fetch presigned URL
+            fetch(`/admin/videos/${videoId}/preview`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.url) {
+                    previewVideo.src = data.url;
+                    previewVideo.classList.remove('hidden');
+                    previewLoading.classList.add('hidden');
+                } else {
+                    throw new Error(data.error || 'Failed to load video');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                previewLoading.classList.add('hidden');
+                previewError.classList.remove('hidden');
+            });
+        }
+        
+        function closePreview() {
+            const modal = document.getElementById('previewModal');
+            const previewVideo = document.getElementById('previewVideo');
+            modal.style.display = 'none';
+            previewVideo.pause();
+            previewVideo.src = '';
+        }
+        
+        // Close modal on outside click
+        document.getElementById('previewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePreview();
+            }
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePreview();
+            }
+        });
+    </script>
 </body>
 </html>
 

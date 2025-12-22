@@ -124,9 +124,32 @@
                     <p class="text-sm sm:text-base text-gray-600">Add a new training video to your library</p>
                 </div>
 
+                <!-- Success/Error Messages -->
+                @if(session('success'))
+                    <div class="bg-green-50 border-l-4 border-green-400 p-3 sm:p-4 mb-4 sm:mb-6 rounded-lg">
+                        <div class="flex items-start sm:items-center">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-xs sm:text-sm text-green-800">{{ session('success') }}</p>
+                        </div>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="bg-red-50 border-l-4 border-red-400 p-3 sm:p-4 mb-4 sm:mb-6 rounded-lg">
+                        <div class="flex items-start sm:items-center">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-xs sm:text-sm text-red-800">{{ session('error') }}</p>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Form -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8">
-                    <form action="{{ route('admin.videos.store') }}" method="POST">
+                    <form action="{{ route('admin.videos.store') }}" method="POST" enctype="multipart/form-data" id="videoForm" x-data="{ uploading: false }">
                         @csrf
 
                         <!-- Title -->
@@ -166,23 +189,51 @@
                             @enderror
                         </div>
 
-                        <!-- Video Path -->
+                        <!-- Video File Upload -->
                         <div class="mb-6">
-                            <label for="video_path" class="block text-sm font-medium text-gray-700 mb-2">Video URL/Path *</label>
-                            <input type="text" name="video_path" id="video_path" value="{{ old('video_path') }}" required
-                                placeholder="https://example.com/video.mp4"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent">
-                            @error('video_path')
+                            <label for="video" class="block text-sm font-medium text-gray-700 mb-2">Video File *</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="video" class="relative cursor-pointer bg-white rounded-md font-medium text-gray-900 hover:text-gray-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-900">
+                                            <span>Upload a video file</span>
+                                            <input id="video" name="video" type="file" accept="video/mp4,video/mov,video/webm,video/avi" required
+                                                class="sr-only" @change="uploading = false">
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">MP4, MOV, WebM, AVI up to 5GB</p>
+                                    <p id="videoFileName" class="text-xs text-gray-700 mt-2 font-medium"></p>
+                                </div>
+                            </div>
+                            @error('video')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Thumbnail -->
+                        <!-- Thumbnail File Upload -->
                         <div class="mb-6">
-                            <label for="thumbnail" class="block text-sm font-medium text-gray-700 mb-2">Thumbnail URL</label>
-                            <input type="text" name="thumbnail" id="thumbnail" value="{{ old('thumbnail') }}"
-                                placeholder="https://example.com/thumbnail.jpg"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent">
+                            <label for="thumbnail" class="block text-sm font-medium text-gray-700 mb-2">Thumbnail Image (Optional)</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="thumbnail" class="relative cursor-pointer bg-white rounded-md font-medium text-gray-900 hover:text-gray-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-900">
+                                            <span>Upload a thumbnail</span>
+                                            <input id="thumbnail" name="thumbnail" type="file" accept="image/jpeg,image/png,image/jpg,image/gif"
+                                                class="sr-only">
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">JPEG, PNG, JPG, GIF up to 10MB</p>
+                                    <p id="thumbnailFileName" class="text-xs text-gray-700 mt-2 font-medium"></p>
+                                </div>
+                            </div>
                             @error('thumbnail')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -202,12 +253,35 @@
                             <a href="{{ route('admin.videos.index') }}" class="px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold text-sm sm:text-base hover:bg-gray-50 transition-colors text-center">
                                 Cancel
                             </a>
-                            <button type="submit" class="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold text-sm sm:text-base hover:shadow-lg transition-all duration-200">
-                                Create Video
+                            <button type="submit" 
+                                    :disabled="uploading"
+                                    @click="uploading = true"
+                                    class="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold text-sm sm:text-base hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                                <span x-show="!uploading">Create Video</span>
+                                <span x-show="uploading" class="flex items-center">
+                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Uploading...
+                                </span>
                             </button>
                         </div>
                     </form>
                 </div>
+
+                <script>
+                    // Display selected file names
+                    document.getElementById('video').addEventListener('change', function(e) {
+                        const fileName = e.target.files[0]?.name || '';
+                        document.getElementById('videoFileName').textContent = fileName ? 'Selected: ' + fileName : '';
+                    });
+
+                    document.getElementById('thumbnail').addEventListener('change', function(e) {
+                        const fileName = e.target.files[0]?.name || '';
+                        document.getElementById('thumbnailFileName').textContent = fileName ? 'Selected: ' + fileName : '';
+                    });
+                </script>
             </div>
         </main>
     </div>

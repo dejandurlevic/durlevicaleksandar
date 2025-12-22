@@ -130,17 +130,6 @@
                     </div>
                 @endif
 
-                @if(session('error'))
-                    <div class="bg-red-50 border-l-4 border-red-400 p-3 sm:p-4 mb-4 sm:mb-6 rounded-lg">
-                        <div class="flex items-start sm:items-center">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <p class="text-xs sm:text-sm text-red-800">{{ session('error') }}</p>
-                        </div>
-                    </div>
-                @endif
-
                 <!-- Users Table -->
                 @if($users->count() > 0)
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -185,20 +174,10 @@
                                                 </div>
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center gap-2">
-                                                    <button onclick="openModal({{ $user->id }}, {{ $user->subscription_active ? 'true' : 'false' }}, '{{ $user->subscription_expires_at ? $user->subscription_expires_at->format('Y-m-d') : '' }}')" 
-                                                        class="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-900 text-white rounded-lg font-semibold text-xs sm:text-sm hover:bg-gray-800 transition-colors">
-                                                        Manage
-                                                    </button>
-                                                    <form action="{{ route('admin.subscriptions.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirmDelete('{{ $user->name }}')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" 
-                                                            class="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-lg font-semibold text-xs sm:text-sm hover:bg-red-700 transition-colors">
-                                                            Delete
-                                                        </button>
-                                                    </form>
-                                                </div>
+                                                <button onclick="openModal({{ $user->id }}, {{ $user->subscription_active ? 'true' : 'false' }}, '{{ $user->subscription_expires_at ? $user->subscription_expires_at->format('Y-m-d') : '' }}')" 
+                                                    class="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-900 text-white rounded-lg font-semibold text-xs sm:text-sm hover:bg-gray-800 transition-colors">
+                                                    Manage
+                                                </button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -284,10 +263,6 @@
                 closeModal();
             }
         });
-
-        function confirmDelete(userName) {
-            return confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone and will permanently delete the user and all their data from the database.`);
-        }
     </script>
 </body>
 </html>

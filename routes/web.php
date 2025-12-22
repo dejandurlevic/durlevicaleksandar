@@ -47,12 +47,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin Routes
     Route::middleware('is_admin')->prefix('admin')->name('admin.')->group(function () {
         // Manage Videos
-        Route::get('/videos', [VideoController::class, 'index'])->name('videos.index');
-        Route::get('/videos/create', [VideoController::class, 'create'])->name('videos.create');
-        Route::post('/videos', [VideoController::class, 'store'])->name('videos.store');
-        Route::get('/videos/{video}/edit', [VideoController::class, 'edit'])->name('videos.edit');
-        Route::put('/videos/{video}', [VideoController::class, 'update'])->name('videos.update');
-        Route::delete('/videos/{video}', [VideoController::class, 'destroy'])->name('videos.destroy');
+        Route::get('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'index'])->name('videos.index');
+        Route::get('/videos/create', [\App\Http\Controllers\Admin\VideoController::class, 'create'])->name('videos.create');
+        Route::post('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'store'])->name('videos.store');
+        Route::get('/videos/{video}/preview', [\App\Http\Controllers\Admin\VideoController::class, 'preview'])->name('videos.preview');
+        Route::delete('/videos/{video}', [\App\Http\Controllers\Admin\VideoController::class, 'destroy'])->name('videos.destroy');
         
         // Manage Categories
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -66,7 +65,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Subscriptions Management
         Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::post('/subscriptions/{user}/update-status', [SubscriptionController::class, 'updateStatus'])->name('subscriptions.update-status');
-        Route::delete('/subscriptions/{user}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
         
         // Payments Management
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
@@ -87,6 +85,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Manage Inquiries
         Route::get('/inquiries', [\App\Http\Controllers\Admin\InquiryController::class, 'index'])->name('inquiries.index');
         Route::post('/inquiries/{inquiry}/approve', [\App\Http\Controllers\Admin\InquiryController::class, 'approve'])->name('inquiries.approve');
-        Route::delete('/inquiries/{inquiry}', [\App\Http\Controllers\Admin\InquiryController::class, 'destroy'])->name('inquiries.destroy');
     });
 });
