@@ -25,21 +25,37 @@ class VideoController extends Controller
             
             // Use leftJoin to handle missing categories gracefully
             // Explicitly select all videos columns to avoid conflicts with categories timestamps
-            $videos = Video::leftJoin('categories', 'videos.category_id', '=', 'categories.id')
-                ->select(
-                    'videos.id',
-                    'videos.title',
-                    'videos.description',
-                    'videos.video_path',
-                    'videos.thumbnail',
-                    'videos.is_premium',
-                    'videos.category_id',
-                    'videos.created_at',
-                    'videos.updated_at',
-                    'categories.name as category_name'
-                )
-                ->latest('videos.created_at')
-                ->paginate(15);
+            // Wrap in try-catch to handle any SQL errors with the join
+            try {
+                $videos = Video::leftJoin('categories', 'videos.category_id', '=', 'categories.id')
+                    ->select(
+                        'videos.id',
+                        'videos.title',
+                        'videos.description',
+                        'videos.video_path',
+                        'videos.thumbnail',
+                        'videos.is_premium',
+                        'videos.category_id',
+                        'videos.created_at',
+                        'videos.updated_at',
+                        'categories.name as category_name'
+                    )
+                    ->latest('videos.created_at')
+                    ->paginate(15);
+            } catch (\Exception $joinError) {
+                // If leftJoin fails, try without join (fallback)
+                Log::warning('leftJoin failed, falling back to simple query', [
+                    'error' => $joinError->getMessage(),
+                    'trace' => $joinError->getTraceAsString()
+                ]);
+                
+                $videos = Video::latest()->paginate(15);
+                // Manually add category_name as null for all videos
+                $videos->getCollection()->transform(function ($video) {
+                    $video->category_name = null;
+                    return $video;
+                });
+            }
             
             // Safer logging - don't map if it might cause issues
             try {
@@ -63,8 +79,17 @@ class VideoController extends Controller
             // Fallback: try without category relation
             try {
                 $videos = Video::latest()->paginate(15);
+                // Manually add category_name as null
+                $videos->getCollection()->transform(function ($video) {
+                    $video->category_name = null;
+                    return $video;
+                });
                 return view('admin.videos.index', compact('videos'))->with('error', 'Some videos may not display correctly.');
             } catch (\Exception $e2) {
+                Log::error('Complete failure in admin videos index', [
+                    'error' => $e2->getMessage(),
+                    'trace' => $e2->getTraceAsString()
+                ]);
                 abort(500, 'Unable to load videos. Please check the logs.');
             }
         }
