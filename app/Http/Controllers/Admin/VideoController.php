@@ -24,8 +24,20 @@ class VideoController extends Controller
             ]);
             
             // Use leftJoin to handle missing categories gracefully
+            // Explicitly select all videos columns to avoid conflicts with categories timestamps
             $videos = Video::leftJoin('categories', 'videos.category_id', '=', 'categories.id')
-                ->select('videos.*', 'categories.name as category_name')
+                ->select(
+                    'videos.id',
+                    'videos.title',
+                    'videos.description',
+                    'videos.video_path',
+                    'videos.thumbnail',
+                    'videos.is_premium',
+                    'videos.category_id',
+                    'videos.created_at',
+                    'videos.updated_at',
+                    'categories.name as category_name'
+                )
                 ->latest('videos.created_at')
                 ->paginate(15);
             
