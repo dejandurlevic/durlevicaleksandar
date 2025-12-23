@@ -282,7 +282,6 @@
                             </a>
                             <button type="submit" 
                                     :disabled="uploading"
-                                    @click="uploading = true"
                                     class="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold text-sm sm:text-base hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
                                 <span x-show="!uploading">Create Video</span>
                                 <span x-show="uploading" class="flex items-center">
@@ -316,6 +315,13 @@
                         const form = this;
                         const submitButton = form.querySelector('button[type="submit"]');
                         
+                        // Check if form is valid before proceeding
+                        if (!form.checkValidity()) {
+                            console.error('Form validation failed');
+                            form.reportValidity(); // Show browser validation messages
+                            return; // Don't prevent default - let browser show validation
+                        }
+                        
                         // Log form data for debugging
                         const formData = new FormData(form);
                         console.log('=== VIDEO UPLOAD DEBUG ===');
@@ -331,6 +337,13 @@
                             console.log('Video size:', (videoFile.size / (1024 * 1024)).toFixed(2), 'MB');
                             console.log('Video type:', videoFile.type);
                         }
+
+                        // Set uploading state via Alpine.js after validation passes
+                        if (window.Alpine && form.__x) {
+                            form.__x.$data.uploading = true;
+                        }
+                        
+                        console.log('Form is valid, allowing submission...');
 
                         // Set timeout to detect if upload is stuck
                         let timeoutId = setTimeout(function() {
