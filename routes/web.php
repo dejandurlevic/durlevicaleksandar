@@ -48,6 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('is_admin')->prefix('admin')->name('admin.')->group(function () {
         // Manage Videos
         Route::get('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'index'])->name('videos.index');
+        Route::get('/videos/debug', [\App\Http\Controllers\Admin\VideoController::class, 'debug'])->name('videos.debug');
         Route::get('/videos/create', [\App\Http\Controllers\Admin\VideoController::class, 'create'])->name('videos.create');
         Route::post('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'store'])->name('videos.store');
         Route::get('/videos/{video}/preview', [\App\Http\Controllers\Admin\VideoController::class, 'preview'])->name('videos.preview');
