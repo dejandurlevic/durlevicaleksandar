@@ -17,33 +17,30 @@ class VideoController extends Controller
      */
     public function index()
     {
-        try {
-            // Use leftJoin to handle missing categories gracefully
-            $videos = Video::leftJoin('categories', 'videos.category_id', '=', 'categories.id')
-                ->select('videos.*', 'categories.name as category_name')
-                ->latest('videos.created_at')
-                ->paginate(15);
-            
-            return view('admin.videos.index', compact('videos'));
-        } catch (\Exception $e) {
-            Log::error('Error loading videos index', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
-            // Fallback: try without category join
-            try {
-                $videos = Video::latest()->paginate(15);
-                return view('admin.videos.index', compact('videos'));
-            } catch (\Exception $e2) {
-                Log::error('Error loading videos index (fallback)', [
-                    'error' => $e2->getMessage(),
-                ]);
-                abort(500, 'Unable to load videos. Please check the logs.');
-            }
-        }
+        // Add debugging to identify the issue
+        Log::info('Admin videos index - Fetching videos', [
+            'total_videos_in_db' => Video::count(),
+        ]);
+        
+        $videos = Video::with('category')->latest()->paginate(15);
+        
+        Log::info('Admin videos index - Videos fetched', [
+            'paginated_count' => $videos->count(),
+            'total_pages' => $videos->lastPage(),
+            'current_page' => $videos->currentPage(),
+            'videos_data' => $videos->map(function($v) {
+                return [
+                    'id' => $v->id,
+                    'title' => $v->title,
+                    'video_path' => $v->video_path,
+                    'category_id' => $v->category_id,
+                    'has_category' => $v->category ? true : false,
+                    'category_name' => $v->category ? $v->category->name : null,
+                ];
+            })->toArray()
+        ]);
+        
+        return view('admin.videos.index', compact('videos'));
     }
 
     /**
@@ -200,11 +197,8 @@ class VideoController extends Controller
             
             // Verify the video was actually saved (same as TestVideoUpload Step 9)
             $savedVideo = Video::find($video->id);
-            if ($savedVideo && $savedVideo->video_path === $videoPath) {
-                $this->info("✓ Database record verified!");
-            } else {
-                $this->error("✗ Database record mismatch!");
-                return 1;
+            if (!$savedVideo || $savedVideo->video_path !== $videoPath) {
+                throw new \Exception('Video was not saved to database correctly after creation');
             }
             
             Log::info('Video created successfully', [

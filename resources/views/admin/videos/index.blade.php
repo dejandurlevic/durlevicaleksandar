@@ -201,7 +201,7 @@
                                                         @endif
                                                         <div class="sm:hidden mt-1">
                                                             <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
-                                                                {{ $video->category_name ?? 'No Category' }}
+                                                                {{ $video->category ? $video->category->name : 'No Category' }}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -209,7 +209,7 @@
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                                                 <span class="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
-                                                    {{ $video->category_name ?? 'No Category' }}
+                                                    {{ $video->category ? $video->category->name : 'No Category' }}
                                                 </span>
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
