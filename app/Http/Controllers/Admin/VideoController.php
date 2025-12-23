@@ -197,9 +197,13 @@ class VideoController extends Controller
             
             // Verify the video was actually saved (same as TestVideoUpload Step 9)
             $savedVideo = Video::find($video->id);
-            if (!$savedVideo || $savedVideo->video_path !== $videoPath) {
-                throw new \Exception('Video was not saved to database correctly after creation');
+            if ($savedVideo && $savedVideo->video_path === $videoPath) {
+                $this->info("✓ Database record verified!");
+            } else {
+                $this->error("✗ Database record mismatch!");
+                return 1;
             }
+          
             
             Log::info('Video created successfully', [
                 'video_id' => $video->id, 
