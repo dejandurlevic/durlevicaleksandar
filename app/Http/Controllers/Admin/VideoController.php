@@ -143,42 +143,53 @@ class VideoController extends Controller
     ]);
 
     try {
+        Log::info('Video upload request received', [
+            'title' => $validated['title'],
+            'video_size' => $request->file('video')->getSize(),
+        ]);
+
         /** ---------------- VIDEO UPLOAD ---------------- */
         $videoFile = $request->file('video');
-        $videoName = 'videos/' . Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
-
-        $uploaded = Storage::disk('s3')->put(
-            $videoName,
-            file_get_contents($videoFile),
-            'private'
-        );
-
-        if (!$uploaded) {
-            throw new \Exception('Video upload to S3 failed.');
-        }
+        $videoFileName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
+        
+        // Use putFileAs instead of put() with file_get_contents()
+        // This handles large files better by using streams
+        $videoPath = Storage::disk('s3')->putFileAs('videos', $videoFile, $videoFileName);
+        
+        Log::info('Video uploaded to S3', ['path' => $videoPath]);
+        
+        // Set visibility separately (putFileAs doesn't accept visibility parameter)
+        Storage::disk('s3')->setVisibility($videoPath, 'private');
 
         /** ---------------- THUMBNAIL ---------------- */
         $thumbnailPath = null;
 
         if ($request->hasFile('thumbnail')) {
             $thumb = $request->file('thumbnail');
-            $thumbnailPath = 'thumbnails/' . Str::uuid() . '.' . $thumb->getClientOriginalExtension();
-
-            Storage::disk('s3')->put(
-                $thumbnailPath,
-                file_get_contents($thumb),
-                'public'
-            );
+            $thumbnailFileName = Str::uuid() . '.' . $thumb->getClientOriginalExtension();
+            
+            // Use putFileAs for thumbnail too
+            $thumbnailPath = Storage::disk('s3')->putFileAs('thumbnails', $thumb, $thumbnailFileName);
+            
+            // Set thumbnail as public
+            Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
+            
+            Log::info('Thumbnail uploaded to S3', ['path' => $thumbnailPath]);
         }
 
         /** ---------------- DATABASE ---------------- */
-        Video::create([
+        $video = Video::create([
             'title'       => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'video_path'  => $videoName,          // ⬅️ UVEK STRING
+            'video_path'  => $videoPath,
             'thumbnail'   => $thumbnailPath,
             'category_id' => (int) $validated['category_id'],
             'is_premium'  => $request->boolean('is_premium'),
+        ]);
+
+        Log::info('Video created successfully', [
+            'video_id' => $video->id,
+            'video_path' => $video->video_path,
         ]);
 
         return redirect()
@@ -188,6 +199,9 @@ class VideoController extends Controller
     } catch (\Exception $e) {
         Log::error('Video upload failed', [
             'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString(),
         ]);
 
         return back()
