@@ -176,11 +176,14 @@
                                                                 if (filter_var($video->thumbnail, FILTER_VALIDATE_URL)) {
                                                                     // It's already a full URL
                                                                     $thumbnailUrl = $video->thumbnail;
-                                                                } elseif (Storage::disk('s3')->exists($video->thumbnail)) {
-                                                                    // It's an S3 path, generate presigned URL
-                                                                    $thumbnailUrl = Storage::disk('s3')->temporaryUrl($video->thumbnail, now()->addMinutes(60));
                                                                 } else {
-                                                                    $thumbnailUrl = $video->thumbnail;
+                                                                    // Try to generate presigned URL, but don't check exists() as it may throw
+                                                                    try {
+                                                                        $thumbnailUrl = Storage::disk('s3')->temporaryUrl($video->thumbnail, now()->addMinutes(60));
+                                                                    } catch (\Exception $s3Error) {
+                                                                        // If S3 fails, just use the path as-is
+                                                                        $thumbnailUrl = $video->thumbnail;
+                                                                    }
                                                                 }
                                                             } catch (\Exception $e) {
                                                                 $thumbnailUrl = $video->thumbnail;

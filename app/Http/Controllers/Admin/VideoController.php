@@ -17,30 +17,41 @@ class VideoController extends Controller
      */
     public function index()
     {
-        // Add debugging to identify the issue
-        Log::info('Admin videos index - Fetching videos', [
-            'total_videos_in_db' => Video::count(),
-        ]);
-        
-        $videos = Video::with('category')->latest()->paginate(15);
-        
-        Log::info('Admin videos index - Videos fetched', [
-            'paginated_count' => $videos->count(),
-            'total_pages' => $videos->lastPage(),
-            'current_page' => $videos->currentPage(),
-            'videos_data' => $videos->map(function($v) {
-                return [
-                    'id' => $v->id,
-                    'title' => $v->title,
-                    'video_path' => $v->video_path,
-                    'category_id' => $v->category_id,
-                    'has_category' => $v->category ? true : false,
-                    'category_name' => $v->category ? $v->category->name : null,
-                ];
-            })->toArray()
-        ]);
-        
-        return view('admin.videos.index', compact('videos'));
+        try {
+            // Add debugging to identify the issue
+            Log::info('Admin videos index - Fetching videos', [
+                'total_videos_in_db' => Video::count(),
+            ]);
+            
+            $videos = Video::with('category')->latest()->paginate(15);
+            
+            // Safer logging - don't map if it might cause issues
+            try {
+                Log::info('Admin videos index - Videos fetched', [
+                    'paginated_count' => $videos->count(),
+                    'total_pages' => $videos->lastPage(),
+                    'current_page' => $videos->currentPage(),
+                ]);
+            } catch (\Exception $logError) {
+                // Ignore logging errors
+                Log::warning('Could not log video details', ['error' => $logError->getMessage()]);
+            }
+            
+            return view('admin.videos.index', compact('videos'));
+        } catch (\Exception $e) {
+            Log::error('Error in admin videos index', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Fallback: try without category relation
+            try {
+                $videos = Video::latest()->paginate(15);
+                return view('admin.videos.index', compact('videos'))->with('error', 'Some videos may not display correctly.');
+            } catch (\Exception $e2) {
+                abort(500, 'Unable to load videos. Please check the logs.');
+            }
+        }
     }
 
     /**
