@@ -57,12 +57,12 @@ class VideoController extends Controller
             // Upload video to S3
             $videoFile = $request->file('video');
             // Generate unique filename to prevent conflicts
-            $videoFileName = 'videos/' . Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
+            $videoFileName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
             
             Log::info('Uploading video to S3', ['filename' => $videoFileName]);
             
-            // Upload to S3 and get the path
-            $videoPath = Storage::disk('s3')->putFileAs('', $videoFile, $videoFileName);
+            // Upload to S3 - putFileAs(directory, file, filename)
+            $videoPath = Storage::disk('s3')->putFileAs('videos', $videoFile, $videoFileName);
             
             Log::info('Video uploaded to S3', ['path' => $videoPath]);
             
@@ -74,9 +74,9 @@ class VideoController extends Controller
             if ($request->hasFile('thumbnail')) {
                 $thumbnailFile = $request->file('thumbnail');
                 // Generate unique filename for thumbnail
-                $thumbnailFileName = 'thumbnails/' . Str::uuid() . '.' . $thumbnailFile->getClientOriginalExtension();
-                // Upload to S3 and get the path
-                $thumbnailPath = Storage::disk('s3')->putFileAs('', $thumbnailFile, $thumbnailFileName);
+                $thumbnailFileName = Str::uuid() . '.' . $thumbnailFile->getClientOriginalExtension();
+                // Upload to S3 - putFileAs(directory, file, filename)
+                $thumbnailPath = Storage::disk('s3')->putFileAs('thumbnails', $thumbnailFile, $thumbnailFileName);
                 // Set thumbnail as public (can be accessed directly)
                 Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
                 
