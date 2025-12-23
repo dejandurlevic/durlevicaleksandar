@@ -23,7 +23,11 @@ class VideoController extends Controller
                 'total_videos_in_db' => Video::count(),
             ]);
             
-            $videos = Video::with('category')->latest()->paginate(15);
+            // Use leftJoin to handle missing categories gracefully
+            $videos = Video::leftJoin('categories', 'videos.category_id', '=', 'categories.id')
+                ->select('videos.*', 'categories.name as category_name')
+                ->latest('videos.created_at')
+                ->paginate(15);
             
             // Safer logging - don't map if it might cause issues
             try {
