@@ -81,20 +81,28 @@ class VideoController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            // Note: Adjust max size based on your server's upload_max_filesize and post_max_size in php.ini
-            // Also ensure your S3 bucket and IAM policies allow large file uploads
-            // max value is in kilobytes: 5242880 KB = 5GB
-            'video' => 'required|file|mimes:mp4,mov,webm,avi|max:5242880', // Max 5GB (adjust as needed)
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Max 10MB (in KB)
-            'category_id' => 'required|exists:categories,id',
-            'is_premium' => 'boolean',
-        ]);
-
         try {
-            Log::info('Video upload started', [
+            Log::info('Video upload request received', [
+                'has_video' => $request->hasFile('video'),
+                'has_thumbnail' => $request->hasFile('thumbnail'),
+                'title' => $request->input('title'),
+                'category_id' => $request->input('category_id'),
+                'video_size' => $request->hasFile('video') ? $request->file('video')->getSize() : null,
+            ]);
+
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                // Note: Adjust max size based on your server's upload_max_filesize and post_max_size in php.ini
+                // Also ensure your S3 bucket and IAM policies allow large file uploads
+                // max value is in kilobytes: 5242880 KB = 5GB
+                'video' => 'required|file|mimes:mp4,mov,webm,avi|max:5242880', // Max 5GB (adjust as needed)
+                'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Max 10MB (in KB)
+                'category_id' => 'required|exists:categories,id',
+                'is_premium' => 'boolean',
+            ]);
+
+            Log::info('Video upload validation passed', [
                 'title' => $validated['title'],
                 'category_id' => $validated['category_id'],
                 'video_size' => $request->file('video')->getSize(),
@@ -169,16 +177,33 @@ class VideoController extends Controller
 
             return redirect()->route('admin.videos.index')
                 ->with('success', 'Video uploaded successfully.');
-        } catch (\Exception $e) {
-            Log::error('Video upload failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'title' => $validated['title'] ?? null,
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Video upload validation failed', [
+                'errors' => $e->errors(),
+                'title' => $request->input('title'),
             ]);
             
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to upload video: ' . $e->getMessage());
+                ->withErrors($e->errors())
+                ->with('error', 'Please fix the validation errors below.');
+        } catch (\Exception $e) {
+            Log::error('Video upload failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'title' => $request->input('title'),
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to upload video: ' . $e->getMessage())
+                ->with('error_details', [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
         }
     }
 

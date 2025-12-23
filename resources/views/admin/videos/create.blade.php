@@ -138,11 +138,38 @@
 
                 @if(session('error'))
                     <div class="bg-red-50 border-l-4 border-red-400 p-3 sm:p-4 mb-4 sm:mb-6 rounded-lg">
-                        <div class="flex items-start sm:items-center">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <p class="text-xs sm:text-sm text-red-800">{{ session('error') }}</p>
+                            <div class="flex-1">
+                                <p class="text-xs sm:text-sm font-semibold text-red-800 mb-1">{{ session('error') }}</p>
+                                @if(session('error_details'))
+                                    <div class="mt-2 text-xs text-red-700 bg-red-100 p-2 rounded">
+                                        <p><strong>Error:</strong> {{ session('error_details')['message'] }}</p>
+                                        <p class="mt-1"><strong>File:</strong> {{ session('error_details')['file'] }}</p>
+                                        <p><strong>Line:</strong> {{ session('error_details')['line'] }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="bg-red-50 border-l-4 border-red-400 p-3 sm:p-4 mb-4 sm:mb-6 rounded-lg">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div class="flex-1">
+                                <p class="text-xs sm:text-sm font-semibold text-red-800 mb-2">Please fix the following errors:</p>
+                                <ul class="list-disc list-inside space-y-1 text-xs sm:text-sm text-red-700">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 @endif
@@ -274,12 +301,100 @@
                     // Display selected file names
                     document.getElementById('video').addEventListener('change', function(e) {
                         const fileName = e.target.files[0]?.name || '';
-                        document.getElementById('videoFileName').textContent = fileName ? 'Selected: ' + fileName : '';
+                        const fileSize = e.target.files[0]?.size || 0;
+                        const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
+                        document.getElementById('videoFileName').textContent = fileName ? `Selected: ${fileName} (${fileSizeMB} MB)` : '';
                     });
 
                     document.getElementById('thumbnail').addEventListener('change', function(e) {
                         const fileName = e.target.files[0]?.name || '';
                         document.getElementById('thumbnailFileName').textContent = fileName ? 'Selected: ' + fileName : '';
+                    });
+
+                    // Enhanced form submission with error handling
+                    document.getElementById('videoForm').addEventListener('submit', function(e) {
+                        const form = this;
+                        const submitButton = form.querySelector('button[type="submit"]');
+                        
+                        // Log form data for debugging
+                        const formData = new FormData(form);
+                        console.log('=== VIDEO UPLOAD DEBUG ===');
+                        console.log('Form submission started');
+                        console.log('Title:', formData.get('title'));
+                        console.log('Category:', formData.get('category_id'));
+                        console.log('Has video:', formData.get('video') ? 'Yes' : 'No');
+                        console.log('Has thumbnail:', formData.get('thumbnail') ? 'Yes' : 'No');
+                        
+                        if (formData.get('video')) {
+                            const videoFile = formData.get('video');
+                            console.log('Video file:', videoFile.name);
+                            console.log('Video size:', (videoFile.size / (1024 * 1024)).toFixed(2), 'MB');
+                            console.log('Video type:', videoFile.type);
+                        }
+
+                        // Set timeout to detect if upload is stuck
+                        let timeoutId = setTimeout(function() {
+                            console.error('=== UPLOAD TIMEOUT ===');
+                            console.error('Upload timeout - form submission taking too long (5 minutes)');
+                            
+                            // Reset button state
+                            submitButton.disabled = false;
+                            const buttonContent = submitButton.querySelector('span');
+                            if (buttonContent) {
+                                buttonContent.textContent = 'Create Video';
+                            }
+                            
+                            // Remove uploading state from Alpine
+                            if (window.Alpine && form.__x) {
+                                form.__x.$data.uploading = false;
+                            }
+                            
+                            // Show error message if not already shown
+                            if (!document.getElementById('upload-timeout-error')) {
+                                const errorDiv = document.createElement('div');
+                                errorDiv.id = 'upload-timeout-error';
+                                errorDiv.className = 'bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded-lg';
+                                errorDiv.innerHTML = `
+                                    <div class="flex items-start">
+                                        <svg class="w-6 h-6 text-red-400 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm font-semibold text-red-800">Upload Timeout</p>
+                                            <p class="text-sm text-red-700 mt-1">The upload is taking too long. This might be due to:</p>
+                                            <ul class="list-disc list-inside text-sm text-red-700 mt-2 ml-2">
+                                                <li>File size too large (check PHP upload limits: upload_max_filesize, post_max_size)</li>
+                                                <li>Network connection issues</li>
+                                                <li>Server timeout settings (max_execution_time)</li>
+                                                <li>S3 connection problems</li>
+                                            </ul>
+                                            <p class="text-sm text-red-700 mt-2"><strong>Check:</strong></p>
+                                            <ul class="list-disc list-inside text-sm text-red-700 mt-1 ml-2">
+                                                <li>Browser console (F12) for network errors</li>
+                                                <li>Laravel logs: storage/logs/laravel.log</li>
+                                                <li>PHP configuration: php.ini settings</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                `;
+                                const formContainer = form.closest('.bg-white');
+                                if (formContainer) {
+                                    formContainer.insertBefore(errorDiv, formContainer.firstChild);
+                                }
+                            }
+                        }, 300000); // 5 minutes timeout
+
+                        // Store timeout ID for cleanup
+                        form.dataset.timeoutId = timeoutId;
+                    });
+
+                    // Handle form errors from server response
+                    window.addEventListener('load', function() {
+                        // Check for errors in URL parameters
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.has('error')) {
+                            console.error('Error from URL:', urlParams.get('error'));
+                        }
                     });
                 </script>
             </div>
