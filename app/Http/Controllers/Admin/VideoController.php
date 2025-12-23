@@ -100,17 +100,23 @@ class VideoController extends Controller
                 'video_size' => $request->file('video')->getSize(),
             ]);
 
-            // Upload video to S3
+            // Upload video to S3 - following the same pattern as TestVideoUpload
             $videoFile = $request->file('video');
+            
             // Generate unique filename to prevent conflicts
             $videoFileName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
             
             Log::info('Uploading video to S3', ['filename' => $videoFileName]);
             
-            // Upload to S3 - putFileAs(directory, file, filename)
+            // Upload to S3 - putFileAs(directory, file, filename) - same as TestVideoUpload
             $videoPath = Storage::disk('s3')->putFileAs('videos', $videoFile, $videoFileName);
             
             Log::info('Video uploaded to S3', ['path' => $videoPath]);
+            
+            // Verify file exists on S3 (same as TestVideoUpload Step 5)
+            if (!Storage::disk('s3')->exists($videoPath)) {
+                throw new \Exception('Video file was not found on S3 after upload');
+            }
             
             // Set video as private (not publicly accessible)
             Storage::disk('s3')->setVisibility($videoPath, 'private');
@@ -123,13 +129,19 @@ class VideoController extends Controller
                 $thumbnailFileName = Str::uuid() . '.' . $thumbnailFile->getClientOriginalExtension();
                 // Upload to S3 - putFileAs(directory, file, filename)
                 $thumbnailPath = Storage::disk('s3')->putFileAs('thumbnails', $thumbnailFile, $thumbnailFileName);
+                
+                // Verify thumbnail exists on S3
+                if (!Storage::disk('s3')->exists($thumbnailPath)) {
+                    throw new \Exception('Thumbnail file was not found on S3 after upload');
+                }
+                
                 // Set thumbnail as public (can be accessed directly)
                 Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
                 
                 Log::info('Thumbnail uploaded to S3', ['path' => $thumbnailPath]);
             }
 
-            // Create video record
+            // Create video record - same pattern as TestVideoUpload Step 8
             $videoData = [
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
@@ -143,10 +155,10 @@ class VideoController extends Controller
             
             $video = Video::create($videoData);
             
-            // Verify the video was actually saved
+            // Verify the video was actually saved (same as TestVideoUpload Step 9)
             $savedVideo = Video::find($video->id);
-            if (!$savedVideo) {
-                throw new \Exception('Video was not saved to database after creation');
+            if (!$savedVideo || $savedVideo->video_path !== $videoPath) {
+                throw new \Exception('Video was not saved to database correctly after creation');
             }
             
             Log::info('Video created successfully', [
