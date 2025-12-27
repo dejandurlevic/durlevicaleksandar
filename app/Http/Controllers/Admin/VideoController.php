@@ -154,183 +154,68 @@ class VideoController extends Controller
     public function store(Request $request)
 {
     $validated = $request->validate([
-        'title'       => 'required|string|max:255',
+        'title' => 'required|string|max:255',
         'description' => 'nullable|string',
-        'video'       => 'required|file|mimes:mp4,mov,webm,avi|max:5242880', // 5GB
-        'thumbnail'   => 'nullable|image|max:10240',
+        'video' => 'required|file|mimes:mp4,mov,webm,avi|max:5242880',
+        'thumbnail' => 'nullable|image|max:10240',
         'category_id' => 'required|exists:categories,id',
-        'is_premium'  => 'nullable|boolean',
+        'is_premium' => 'boolean',
     ]);
 
     try {
-        Log::info('Video upload request received', [
-            'title' => $validated['title'],
-            'video_size' => $request->file('video')->getSize(),
-            'video_name' => $request->file('video')->getClientOriginalName(),
-        ]);
-
-        /** ---------------- VIDEO UPLOAD ---------------- */
+        // ✅ VIDEO UPLOAD
         $videoFile = $request->file('video');
-        $videoFileName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
-        
-        Log::info('Attempting S3 upload', [
-            'filename' => $videoFileName,
-            'directory' => 'videos',
-            'file_size' => $videoFile->getSize(),
-            'real_path' => $videoFile->getRealPath(),
-            'pathname' => $videoFile->getPathname(),
-            'is_valid' => $videoFile->isValid(),
-        ]);
-        
-        // Use putFileAs exactly like TestVideoUpload does
-        // This is the proven working method
-        try {
-            $videoPath = Storage::disk('s3')->putFileAs('videos', $videoFile, $videoFileName);
-            
-            Log::info('putFileAs returned', [
-                'result' => $videoPath,
-                'type' => gettype($videoPath),
-                'is_false' => ($videoPath === false),
-                'is_empty' => empty($videoPath),
-            ]);
-            
-            // Validate that upload was successful
-            if (!$videoPath || $videoPath === false || empty($videoPath)) {
-                Log::error('putFileAs returned invalid path', [
-                    'returned_value' => var_export($videoPath, true),
-                    'type' => gettype($videoPath),
-                ]);
-                throw new \Exception('Video upload to S3 failed: putFileAs returned invalid path: ' . var_export($videoPath, true));
-            }
-            
-        } catch (\Exception $uploadException) {
-            Log::error('putFileAs threw exception', [
-                'error' => $uploadException->getMessage(),
-                'file' => $uploadException->getFile(),
-                'line' => $uploadException->getLine(),
-                'trace' => $uploadException->getTraceAsString(),
-            ]);
-            throw new \Exception('Video upload to S3 failed: ' . $uploadException->getMessage());
-        }
-        
-        Log::info('Video uploaded to S3 successfully', ['path' => $videoPath]);
-        
-        // Verify file exists on S3
-        try {
-            $exists = Storage::disk('s3')->exists($videoPath);
-            Log::info('S3 file existence check', [
-                'path' => $videoPath,
-                'exists' => $exists,
-            ]);
-            
-            if (!$exists) {
-                Log::warning('Uploaded video file not found on S3', ['path' => $videoPath]);
-                // Don't throw - might be a timing issue or permissions
-            }
-        } catch (\Exception $e) {
-            Log::warning('Could not verify video exists on S3', [
-                'path' => $videoPath,
-                'error' => $e->getMessage()
-            ]);
-            // Continue anyway - might be a permissions issue
-        }
-        
-        // Set visibility separately (if not already set)
-        try {
-            Storage::disk('s3')->setVisibility($videoPath, 'private');
-            Log::info('Video visibility set to private', ['path' => $videoPath]);
-        } catch (\Exception $e) {
-            Log::warning('Could not set video visibility', [
-                'path' => $videoPath,
-                'error' => $e->getMessage()
-            ]);
-            // Continue anyway - file is uploaded
+        $videoName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
+
+        $videoPath = Storage::disk('s3')->putFileAs(
+            'videos',
+            $videoFile,
+            $videoName
+        );
+
+        if (!$videoPath) {
+            throw new \Exception('S3 video upload failed');
         }
 
-        /** ---------------- THUMBNAIL ---------------- */
+        // ❌ NEMA exists()
+        // ❌ NEMA setVisibility za video
+
+        // ✅ THUMBNAIL
         $thumbnailPath = null;
-
         if ($request->hasFile('thumbnail')) {
             $thumb = $request->file('thumbnail');
-            $thumbnailFileName = Str::uuid() . '.' . $thumb->getClientOriginalExtension();
-            
-            try {
-                // Use putFileAs for thumbnail too
-                $thumbnailPath = Storage::disk('s3')->putFileAs('thumbnails', $thumb, $thumbnailFileName);
-                
-                // Validate thumbnail upload
-                if (!$thumbnailPath || $thumbnailPath === false || empty($thumbnailPath)) {
-                    Log::warning('Thumbnail upload failed, continuing without thumbnail', [
-                        'returned_value' => var_export($thumbnailPath, true),
-                    ]);
-                    $thumbnailPath = null;
-                } else {
-                    // Set thumbnail as public
-                    try {
-                        Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
-                        Log::info('Thumbnail uploaded to S3', ['path' => $thumbnailPath]);
-                    } catch (\Exception $e) {
-                        Log::warning('Could not set thumbnail visibility', ['error' => $e->getMessage()]);
-                        // Continue anyway - file is uploaded
-                    }
-                }
-            } catch (\Exception $thumbException) {
-                Log::warning('Thumbnail upload exception', [
-                    'error' => $thumbException->getMessage(),
-                ]);
-                $thumbnailPath = null;
-            }
+            $thumbName = Str::uuid() . '.' . $thumb->getClientOriginalExtension();
+
+            $thumbnailPath = Storage::disk('s3')->putFileAs(
+                'thumbnails',
+                $thumb,
+                $thumbName,
+                ['visibility' => 'public']
+            );
         }
 
-        /** ---------------- DATABASE ---------------- */
-        // Double-check that videoPath is valid before saving
-        if (empty($videoPath) || $videoPath === false || $videoPath === '0') {
-            throw new \Exception('Invalid video path before database save: ' . var_export($videoPath, true));
-        }
-        
-        $video = Video::create([
-            'title'       => $validated['title'],
+        Video::create([
+            'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'video_path'  => (string) $videoPath, // Explicitly cast to string
-            'thumbnail'   => $thumbnailPath,
+            'video_path' => $videoPath,
+            'thumbnail' => $thumbnailPath,
             'category_id' => (int) $validated['category_id'],
-            'is_premium'  => $request->boolean('is_premium'),
-        ]);
-
-        // Verify what was actually saved
-        $savedVideo = Video::find($video->id);
-        if ($savedVideo->video_path === '0' || empty($savedVideo->video_path)) {
-            Log::error('Video path was saved incorrectly', [
-                'expected' => $videoPath,
-                'actual' => $savedVideo->video_path,
-                'video_id' => $video->id
-            ]);
-            // Delete the invalid record
-            $savedVideo->delete();
-            throw new \Exception('Video path was not saved correctly to database.');
-        }
-
-        Log::info('Video created successfully', [
-            'video_id' => $video->id,
-            'video_path' => $video->video_path,
-            'saved_video_path' => $savedVideo->video_path,
+            'is_premium' => $request->boolean('is_premium'),
         ]);
 
         return redirect()
             ->route('admin.videos.index')
-            ->with('success', 'Video successfully uploaded.');
+            ->with('success', 'Video uploaded successfully');
 
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
         Log::error('Video upload failed', [
             'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
             'trace' => $e->getTraceAsString(),
         ]);
 
         return back()
             ->withInput()
-            ->with('error', 'Upload failed: ' . $e->getMessage());
+            ->with('error', 'Upload failed. Check logs.');
     }
 }
 
