@@ -154,12 +154,7 @@ class VideoController extends Controller
     public function store(Request $request)
 {
     // #region agent log
-    $logFile = base_path('.cursor/debug.log');
-    $logDir = base_path('.cursor');
-    if (!is_dir($logDir)) {
-        @mkdir($logDir, 0755, true);
-    }
-    $logEntry = json_encode([
+    $logData = [
         'sessionId' => 'debug-session',
         'runId' => 'run1',
         'hypothesisId' => 'ALL',
@@ -168,17 +163,17 @@ class VideoController extends Controller
         'data' => [
             'has_video' => $request->hasFile('video'),
             'has_thumbnail' => $request->hasFile('thumbnail'),
-            'log_file_path' => $logFile,
-            'log_dir_exists' => is_dir($logDir),
         ],
         'timestamp' => time() * 1000
-    ]) . "\n";
+    ];
+    $logFile = base_path('.cursor/debug.log');
+    $logDir = base_path('.cursor');
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0755, true);
+    }
+    $logEntry = json_encode($logData) . "\n";
     $writeResult = @file_put_contents($logFile, $logEntry, FILE_APPEND);
-    Log::info('DEBUG: store() method entry', [
-        'has_video' => $request->hasFile('video'),
-        'log_write_result' => $writeResult,
-        'log_file' => $logFile
-    ]);
+    Log::info('DEBUG: store() method entry', array_merge($logData['data'], ['log_write_result' => $writeResult, 'log_file' => $logFile]));
     // #endregion
 
     // Check PHP upload configuration before validation
@@ -306,23 +301,25 @@ class VideoController extends Controller
         // Check S3 configuration (without exposing secrets)
         // #region agent log
         $s3Config = config('filesystems.disks.s3');
+        $s3ConfigData = [
+            'driver' => $s3Config['driver'] ?? 'missing',
+            'region' => $s3Config['region'] ?? 'missing',
+            'bucket' => $s3Config['bucket'] ?? 'missing',
+            'has_key' => !empty($s3Config['key']),
+            'has_secret' => !empty($s3Config['secret']),
+            'endpoint' => $s3Config['endpoint'] ?? 'not_set',
+        ];
         $logEntry = json_encode([
             'sessionId' => 'debug-session',
             'runId' => 'run1',
             'hypothesisId' => 'A',
             'location' => 'VideoController.php:245',
             'message' => 'S3 configuration check',
-            'data' => [
-                'driver' => $s3Config['driver'] ?? 'missing',
-                'region' => $s3Config['region'] ?? 'missing',
-                'bucket' => $s3Config['bucket'] ?? 'missing',
-                'has_key' => !empty($s3Config['key']),
-                'has_secret' => !empty($s3Config['secret']),
-                'endpoint' => $s3Config['endpoint'] ?? 'not_set',
-            ],
+            'data' => $s3ConfigData,
             'timestamp' => time() * 1000
         ]) . "\n";
         @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        Log::info('DEBUG: S3 configuration check', $s3ConfigData);
         // #endregion
 
         // Test S3 connection before upload
@@ -374,49 +371,63 @@ class VideoController extends Controller
         ]);
 
         // #region agent log
+        $beforePutFileAsData = [
+            'video_name' => $videoName,
+            'video_path' => $videoPath,
+            'directory' => 'videos',
+            'file_exists' => file_exists($videoFile->getRealPath()),
+            'file_readable' => is_readable($videoFile->getRealPath()),
+        ];
         $logEntry = json_encode([
             'sessionId' => 'debug-session',
             'runId' => 'run1',
             'hypothesisId' => 'B',
             'location' => 'VideoController.php:285',
             'message' => 'Before putFileAs call',
-            'data' => [
-                'video_name' => $videoName,
-                'video_path' => $videoPath,
-                'directory' => 'videos',
-                'file_exists' => file_exists($videoFile->getRealPath()),
-                'file_readable' => is_readable($videoFile->getRealPath()),
-            ],
+            'data' => $beforePutFileAsData,
             'timestamp' => time() * 1000
         ]) . "\n";
         @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        Log::info('DEBUG: Before putFileAs call', $beforePutFileAsData);
         // #endregion
 
         // Try putFileAs first
-        $uploadedPath = Storage::disk('s3')->putFileAs(
-            'videos',
-            $videoFile,
-            $videoName
-        );
+        try {
+            $uploadedPath = Storage::disk('s3')->putFileAs(
+                'videos',
+                $videoFile,
+                $videoName
+            );
+        } catch (\Exception $putFileAsException) {
+            Log::error('DEBUG: putFileAs threw exception', [
+                'error' => $putFileAsException->getMessage(),
+                'file' => $putFileAsException->getFile(),
+                'line' => $putFileAsException->getLine(),
+                'trace' => substr($putFileAsException->getTraceAsString(), 0, 500),
+            ]);
+            $uploadedPath = false;
+        }
 
         // #region agent log
+        $afterPutFileAsData = [
+            'result' => $uploadedPath,
+            'result_type' => gettype($uploadedPath),
+            'is_false' => ($uploadedPath === false),
+            'is_empty' => empty($uploadedPath),
+            'is_string' => is_string($uploadedPath),
+            'result_length' => is_string($uploadedPath) ? strlen($uploadedPath) : 0,
+        ];
         $logEntry = json_encode([
             'sessionId' => 'debug-session',
             'runId' => 'run1',
             'hypothesisId' => 'B',
             'location' => 'VideoController.php:295',
             'message' => 'After putFileAs call',
-            'data' => [
-                'result' => $uploadedPath,
-                'result_type' => gettype($uploadedPath),
-                'is_false' => ($uploadedPath === false),
-                'is_empty' => empty($uploadedPath),
-                'is_string' => is_string($uploadedPath),
-                'result_length' => is_string($uploadedPath) ? strlen($uploadedPath) : 0,
-            ],
+            'data' => $afterPutFileAsData,
             'timestamp' => time() * 1000
         ]) . "\n";
         @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        Log::info('DEBUG: After putFileAs call', $afterPutFileAsData);
         // #endregion
 
         Log::info('putFileAs result', [
@@ -504,24 +515,36 @@ class VideoController extends Controller
                 @file_put_contents($logFile, $logEntry, FILE_APPEND);
                 // #endregion
 
-                $uploadedPath = Storage::disk('s3')->put($videoPath, $fileContents, 'private');
+                try {
+                    $uploadedPath = Storage::disk('s3')->put($videoPath, $fileContents, 'private');
+                } catch (\Exception $putException) {
+                    Log::error('DEBUG: Storage::put() threw exception', [
+                        'error' => $putException->getMessage(),
+                        'file' => $putException->getFile(),
+                        'line' => $putException->getLine(),
+                        'trace' => substr($putException->getTraceAsString(), 0, 500),
+                    ]);
+                    $uploadedPath = false;
+                }
                 
                 // #region agent log
+                $afterPutData = [
+                    'result' => $uploadedPath,
+                    'result_type' => gettype($uploadedPath),
+                    'is_false' => ($uploadedPath === false),
+                    'is_empty' => empty($uploadedPath),
+                ];
                 $logEntry = json_encode([
                     'sessionId' => 'debug-session',
                     'runId' => 'run1',
                     'hypothesisId' => 'E',
                     'location' => 'VideoController.php:360',
                     'message' => 'After Storage::put() call',
-                    'data' => [
-                        'result' => $uploadedPath,
-                        'result_type' => gettype($uploadedPath),
-                        'is_false' => ($uploadedPath === false),
-                        'is_empty' => empty($uploadedPath),
-                    ],
+                    'data' => $afterPutData,
                     'timestamp' => time() * 1000
                 ]) . "\n";
                 @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                Log::info('DEBUG: After Storage::put() call', $afterPutData);
                 // #endregion
                 
                 if (!$uploadedPath || $uploadedPath === false) {
