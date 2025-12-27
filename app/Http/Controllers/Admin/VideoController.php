@@ -176,7 +176,25 @@ class VideoController extends Controller
         // This handles large files better by using streams
         $videoPath = Storage::disk('s3')->putFileAs('videos', $videoFile, $videoFileName);
         
+        // Validate that upload was successful
+        if (!$videoPath || $videoPath === false || empty($videoPath)) {
+            throw new \Exception('Video upload to S3 failed: putFileAs returned invalid path.');
+        }
+        
         Log::info('Video uploaded to S3', ['path' => $videoPath]);
+        
+        // Verify file exists on S3
+        try {
+            if (!Storage::disk('s3')->exists($videoPath)) {
+                throw new \Exception('Uploaded video file not found on S3: ' . $videoPath);
+            }
+        } catch (\Exception $e) {
+            Log::warning('Could not verify video exists on S3', [
+                'path' => $videoPath,
+                'error' => $e->getMessage()
+            ]);
+            // Continue anyway - might be a permissions issue
+        }
         
         // Set visibility separately (putFileAs doesn't accept visibility parameter)
         try {
@@ -196,30 +214,55 @@ class VideoController extends Controller
             // Use putFileAs for thumbnail too
             $thumbnailPath = Storage::disk('s3')->putFileAs('thumbnails', $thumb, $thumbnailFileName);
             
-            // Set thumbnail as public
-            try {
-                Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
-            } catch (\Exception $e) {
-                Log::warning('Could not set thumbnail visibility', ['error' => $e->getMessage()]);
-                // Continue anyway - file is uploaded
+            // Validate thumbnail upload
+            if (!$thumbnailPath || $thumbnailPath === false || empty($thumbnailPath)) {
+                Log::warning('Thumbnail upload failed, continuing without thumbnail');
+                $thumbnailPath = null;
+            } else {
+                // Set thumbnail as public
+                try {
+                    Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
+                } catch (\Exception $e) {
+                    Log::warning('Could not set thumbnail visibility', ['error' => $e->getMessage()]);
+                    // Continue anyway - file is uploaded
+                }
+                
+                Log::info('Thumbnail uploaded to S3', ['path' => $thumbnailPath]);
             }
-            
-            Log::info('Thumbnail uploaded to S3', ['path' => $thumbnailPath]);
         }
 
         /** ---------------- DATABASE ---------------- */
+        // Double-check that videoPath is valid before saving
+        if (empty($videoPath) || $videoPath === false || $videoPath === '0') {
+            throw new \Exception('Invalid video path before database save: ' . var_export($videoPath, true));
+        }
+        
         $video = Video::create([
             'title'       => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'video_path'  => $videoPath,
+            'video_path'  => (string) $videoPath, // Explicitly cast to string
             'thumbnail'   => $thumbnailPath,
             'category_id' => (int) $validated['category_id'],
             'is_premium'  => $request->boolean('is_premium'),
         ]);
 
+        // Verify what was actually saved
+        $savedVideo = Video::find($video->id);
+        if ($savedVideo->video_path === '0' || empty($savedVideo->video_path)) {
+            Log::error('Video path was saved incorrectly', [
+                'expected' => $videoPath,
+                'actual' => $savedVideo->video_path,
+                'video_id' => $video->id
+            ]);
+            // Delete the invalid record
+            $savedVideo->delete();
+            throw new \Exception('Video path was not saved correctly to database.');
+        }
+
         Log::info('Video created successfully', [
             'video_id' => $video->id,
             'video_path' => $video->video_path,
+            'saved_video_path' => $savedVideo->video_path,
         ]);
 
         return redirect()
