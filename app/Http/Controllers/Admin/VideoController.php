@@ -468,6 +468,29 @@ class VideoController extends Controller
                 // Use S3 client directly with streaming for large files
                 // Create S3 client directly using AWS SDK
                 $s3Config = config('filesystems.disks.s3');
+                
+                // #region agent log
+                $logFile = base_path('.cursor/debug.log');
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'A',
+                    'location' => 'VideoController.php:470',
+                    'message' => 'S3 config read from config()',
+                    'data' => [
+                        'bucket' => $s3Config['bucket'] ?? 'NOT_SET',
+                        'bucket_type' => gettype($s3Config['bucket'] ?? null),
+                        'bucket_empty' => empty($s3Config['bucket'] ?? null),
+                        'bucket_is_null' => ($s3Config['bucket'] ?? null) === null,
+                        'has_region' => !empty($s3Config['region'] ?? null),
+                        'has_key' => !empty($s3Config['key'] ?? null),
+                        'has_secret' => !empty($s3Config['secret'] ?? null),
+                    ],
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                // #endregion
+                
                 $s3Client = new S3Client([
                     'version' => 'latest',
                     'region' => $s3Config['region'],
@@ -479,6 +502,25 @@ class VideoController extends Controller
                     'use_path_style_endpoint' => $s3Config['use_path_style_endpoint'] ?? false,
                 ]);
                 $bucket = $s3Config['bucket'];
+                
+                // #region agent log
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'B',
+                    'location' => 'VideoController.php:481',
+                    'message' => 'Bucket value before putObject',
+                    'data' => [
+                        'bucket' => $bucket,
+                        'bucket_type' => gettype($bucket),
+                        'bucket_empty' => empty($bucket),
+                        'bucket_is_null' => $bucket === null,
+                        'bucket_length' => is_string($bucket) ? strlen($bucket) : 0,
+                    ],
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                // #endregion
                 
                 // #region agent log
                 $logEntry = json_encode([
@@ -508,6 +550,24 @@ class VideoController extends Controller
                     'video_path' => $videoPath,
                     'file_size' => $videoFile->getSize(),
                 ]);
+                
+                // #region agent log
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'D',
+                    'location' => 'VideoController.php:513',
+                    'message' => 'About to call putObject',
+                    'data' => [
+                        'bucket' => $bucket,
+                        'bucket_empty' => empty($bucket),
+                        'video_path' => $videoPath,
+                        'has_file_stream' => is_resource($fileStream),
+                    ],
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                // #endregion
                 
                 // Use putObject with stream for large files
                 $result = $s3Client->putObject([
@@ -728,6 +788,26 @@ class VideoController extends Controller
     {
         // Create S3 client directly using AWS SDK
         $s3Config = config('filesystems.disks.s3');
+        
+        // #region agent log
+        $logFile = base_path('.cursor/debug.log');
+        $logEntry = json_encode([
+            'sessionId' => 'debug-session',
+            'runId' => 'run1',
+            'hypothesisId' => 'E',
+            'location' => 'VideoController.php:730',
+            'message' => 'S3 config in uploadLargeFileToS3',
+            'data' => [
+                'bucket' => $s3Config['bucket'] ?? 'NOT_SET',
+                'bucket_type' => gettype($s3Config['bucket'] ?? null),
+                'bucket_empty' => empty($s3Config['bucket'] ?? null),
+                'bucket_is_null' => ($s3Config['bucket'] ?? null) === null,
+            ],
+            'timestamp' => time() * 1000
+        ]) . "\n";
+        @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        // #endregion
+        
         $s3Client = new S3Client([
             'version' => 'latest',
             'region' => $s3Config['region'],
@@ -740,6 +820,24 @@ class VideoController extends Controller
         ]);
         $bucket = $s3Config['bucket'];
         
+        // #region agent log
+        $logEntry = json_encode([
+            'sessionId' => 'debug-session',
+            'runId' => 'run1',
+            'hypothesisId' => 'F',
+            'location' => 'VideoController.php:741',
+            'message' => 'Bucket value in uploadLargeFileToS3 before use',
+            'data' => [
+                'bucket' => $bucket,
+                'bucket_type' => gettype($bucket),
+                'bucket_empty' => empty($bucket),
+                'bucket_is_null' => $bucket === null,
+            ],
+            'timestamp' => time() * 1000
+        ]) . "\n";
+        @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        // #endregion
+        
         // For files > 100MB, use multipart upload
         $fileSize = $file->getSize();
         $partSize = 10 * 1024 * 1024; // 10MB parts
@@ -750,6 +848,23 @@ class VideoController extends Controller
             if ($fileStream === false) {
                 return false;
             }
+            
+            // #region agent log
+            $logEntry = json_encode([
+                'sessionId' => 'debug-session',
+                'runId' => 'run1',
+                'hypothesisId' => 'G',
+                'location' => 'VideoController.php:754',
+                'message' => 'About to call putObject in uploadLargeFileToS3',
+                'data' => [
+                    'bucket' => $bucket,
+                    'bucket_empty' => empty($bucket),
+                    's3_path' => $s3Path,
+                ],
+                'timestamp' => time() * 1000
+            ]) . "\n";
+            @file_put_contents($logFile, $logEntry, FILE_APPEND);
+            // #endregion
             
             $result = $s3Client->putObject([
                 'Bucket' => $bucket,
@@ -762,6 +877,23 @@ class VideoController extends Controller
             fclose($fileStream);
             return isset($result['ETag']) ? $s3Path : false;
         }
+        
+        // #region agent log
+        $logEntry = json_encode([
+            'sessionId' => 'debug-session',
+            'runId' => 'run1',
+            'hypothesisId' => 'H',
+            'location' => 'VideoController.php:767',
+            'message' => 'About to call createMultipartUpload',
+            'data' => [
+                'bucket' => $bucket,
+                'bucket_empty' => empty($bucket),
+                's3_path' => $s3Path,
+            ],
+            'timestamp' => time() * 1000
+        ]) . "\n";
+        @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        // #endregion
         
         // Multipart upload for very large files
         $uploadId = $s3Client->createMultipartUpload([
