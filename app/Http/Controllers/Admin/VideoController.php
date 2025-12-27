@@ -227,22 +227,83 @@ class VideoController extends Controller
     try {
         // ✅ VIDEO UPLOAD
         $videoName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
+        $videoPath = 'videos/' . $videoName;
 
-        $videoPath = Storage::disk('s3')->putFileAs(
+        Log::info('Starting S3 upload', [
+            'filename' => $videoName,
+            'full_path' => $videoPath,
+            'file_size' => $videoFile->getSize(),
+            'real_path' => $videoFile->getRealPath(),
+            'is_valid' => $videoFile->isValid(),
+        ]);
+
+        // Try putFileAs first
+        $uploadedPath = Storage::disk('s3')->putFileAs(
             'videos',
             $videoFile,
             $videoName
         );
 
-        if (!$videoPath) {
-            throw new \Exception('S3 video upload failed');
+        Log::info('putFileAs result', [
+            'result' => $uploadedPath,
+            'type' => gettype($uploadedPath),
+            'is_false' => ($uploadedPath === false),
+            'is_empty' => empty($uploadedPath),
+        ]);
+
+        // If putFileAs returns false, try fallback with put() and stream
+        if (!$uploadedPath || $uploadedPath === false) {
+            Log::warning('putFileAs returned false, trying fallback method with put() and stream');
+            
+            try {
+                $fileStream = fopen($videoFile->getRealPath(), 'rb');
+                if ($fileStream === false) {
+                    throw new \Exception('Could not open video file for reading: ' . $videoFile->getRealPath());
+                }
+                
+                $uploadedPath = Storage::disk('s3')->put($videoPath, $fileStream, 'private');
+                fclose($fileStream);
+                
+                if (!$uploadedPath || $uploadedPath === false) {
+                    throw new \Exception('Fallback put() method also returned false');
+                }
+                
+                Log::info('Fallback put() method succeeded', ['path' => $uploadedPath]);
+            } catch (\Exception $fallbackException) {
+                Log::error('Fallback upload method failed', [
+                    'error' => $fallbackException->getMessage(),
+                    'file' => $fallbackException->getFile(),
+                    'line' => $fallbackException->getLine(),
+                ]);
+                throw new \Exception('S3 video upload failed: putFileAs returned false, and fallback method also failed: ' . $fallbackException->getMessage());
+            }
+        } else {
+            // Set visibility for putFileAs result
+            try {
+                Storage::disk('s3')->setVisibility($uploadedPath, 'private');
+                Log::info('Video visibility set to private', ['path' => $uploadedPath]);
+            } catch (\Exception $e) {
+                Log::warning('Could not set video visibility', ['error' => $e->getMessage()]);
+            }
         }
 
-        // Set visibility
+        $videoPath = $uploadedPath;
+
+        // Verify file exists on S3
         try {
-            Storage::disk('s3')->setVisibility($videoPath, 'private');
+            $exists = Storage::disk('s3')->exists($videoPath);
+            Log::info('S3 file verification', [
+                'path' => $videoPath,
+                'exists' => $exists,
+            ]);
+            
+            if (!$exists) {
+                Log::warning('Uploaded file not found on S3 immediately after upload', ['path' => $videoPath]);
+                // Don't throw - might be a timing issue
+            }
         } catch (\Exception $e) {
-            Log::warning('Could not set video visibility', ['error' => $e->getMessage()]);
+            Log::warning('Could not verify file on S3', ['error' => $e->getMessage()]);
+            // Continue anyway
         }
 
         // ✅ THUMBNAIL
@@ -250,21 +311,41 @@ class VideoController extends Controller
         if ($request->hasFile('thumbnail')) {
             $thumb = $request->file('thumbnail');
             $thumbName = Str::uuid() . '.' . $thumb->getClientOriginalExtension();
+            $thumbPath = 'thumbnails/' . $thumbName;
 
-            $thumbnailPath = Storage::disk('s3')->putFileAs(
+            $uploadedThumb = Storage::disk('s3')->putFileAs(
                 'thumbnails',
                 $thumb,
                 $thumbName
             );
-            
-            if ($thumbnailPath) {
+
+            // Fallback for thumbnail too
+            if (!$uploadedThumb || $uploadedThumb === false) {
+                Log::warning('Thumbnail putFileAs returned false, trying fallback');
                 try {
-                    Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
+                    $thumbStream = fopen($thumb->getRealPath(), 'rb');
+                    if ($thumbStream !== false) {
+                        $uploadedThumb = Storage::disk('s3')->put($thumbPath, $thumbStream, 'public');
+                        fclose($thumbStream);
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Thumbnail fallback failed', ['error' => $e->getMessage()]);
+                }
+            } else {
+                try {
+                    Storage::disk('s3')->setVisibility($uploadedThumb, 'public');
                 } catch (\Exception $e) {
                     Log::warning('Could not set thumbnail visibility', ['error' => $e->getMessage()]);
                 }
             }
+
+            $thumbnailPath = $uploadedThumb;
         }
+
+        Log::info('Creating database record', [
+            'video_path' => $videoPath,
+            'thumbnail_path' => $thumbnailPath,
+        ]);
 
         Video::create([
             'title' => $validated['title'],
@@ -274,6 +355,8 @@ class VideoController extends Controller
             'category_id' => (int) $validated['category_id'],
             'is_premium' => $request->boolean('is_premium'),
         ]);
+
+        Log::info('Video created successfully in database');
 
         return redirect()
             ->route('admin.videos.index')
@@ -289,7 +372,7 @@ class VideoController extends Controller
 
         return back()
             ->withInput()
-            ->with('error', 'Upload failed. Check logs.');
+            ->with('error', 'Upload failed: ' . $e->getMessage());
     }
 }
 
