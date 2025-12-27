@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Aws\S3\S3Client;
 
 class VideoController extends Controller
 {
@@ -465,8 +466,19 @@ class VideoController extends Controller
             
             try {
                 // Use S3 client directly with streaming for large files
-                $s3Client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
-                $bucket = config('filesystems.disks.s3.bucket');
+                // Create S3 client directly using AWS SDK
+                $s3Config = config('filesystems.disks.s3');
+                $s3Client = new S3Client([
+                    'version' => 'latest',
+                    'region' => $s3Config['region'],
+                    'credentials' => [
+                        'key' => $s3Config['key'],
+                        'secret' => $s3Config['secret'],
+                    ],
+                    'endpoint' => $s3Config['endpoint'] ?? null,
+                    'use_path_style_endpoint' => $s3Config['use_path_style_endpoint'] ?? false,
+                ]);
+                $bucket = $s3Config['bucket'];
                 
                 // #region agent log
                 $logEntry = json_encode([
@@ -714,8 +726,19 @@ class VideoController extends Controller
      */
     private function uploadLargeFileToS3($file, $s3Path)
     {
-        $s3Client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
-        $bucket = config('filesystems.disks.s3.bucket');
+        // Create S3 client directly using AWS SDK
+        $s3Config = config('filesystems.disks.s3');
+        $s3Client = new S3Client([
+            'version' => 'latest',
+            'region' => $s3Config['region'],
+            'credentials' => [
+                'key' => $s3Config['key'],
+                'secret' => $s3Config['secret'],
+            ],
+            'endpoint' => $s3Config['endpoint'] ?? null,
+            'use_path_style_endpoint' => $s3Config['use_path_style_endpoint'] ?? false,
+        ]);
+        $bucket = $s3Config['bucket'];
         
         // For files > 100MB, use multipart upload
         $fileSize = $file->getSize();
