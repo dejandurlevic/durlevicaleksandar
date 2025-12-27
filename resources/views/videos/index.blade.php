@@ -169,7 +169,7 @@
                                     <div class="relative aspect-video bg-gray-100 overflow-hidden">
                                         @if($video->thumbnail)
                                             @php
-                                                // Generate thumbnail URL for video library
+                                                // Generate thumbnail URL for video library (same as show.blade.php)
                                                 $thumbUrl = null;
                                                 try {
                                                     $thumbPath = $video->thumbnail;
@@ -183,18 +183,26 @@
                                                     }
                                                     
                                                     if (!filter_var($thumbPath, FILTER_VALIDATE_URL)) {
-                                                        $s3Config = config('filesystems.disks.s3');
-                                                        $bucket = $s3Config['bucket'] ?? null;
-                                                        $region = $s3Config['region'] ?? 'us-east-1';
-                                                        $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
-                                                        
-                                                        if ($bucket) {
-                                                            if ($usePathStyle) {
-                                                                $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
-                                                                $thumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
+                                                        // Generate presigned URL for thumbnail (same as video)
+                                                        try {
+                                                            $thumbUrl = Storage::disk('s3')->temporaryUrl($thumbPath, now()->addMinutes(60));
+                                                        } catch (\Exception $e) {
+                                                            // Fallback: construct S3 URL manually
+                                                            $s3Config = config('filesystems.disks.s3');
+                                                            $bucket = $s3Config['bucket'] ?? null;
+                                                            $region = $s3Config['region'] ?? 'us-east-1';
+                                                            $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                            
+                                                            if ($bucket) {
+                                                                if ($usePathStyle) {
+                                                                    $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
+                                                                } else {
+                                                                    $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
+                                                                }
                                                             } else {
-                                                                $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
-                                                                $thumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
+                                                                $thumbUrl = null;
                                                             }
                                                         }
                                                     } else {
