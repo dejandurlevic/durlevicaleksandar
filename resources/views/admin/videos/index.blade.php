@@ -172,30 +172,48 @@
                                                 <div class="flex items-center">
                                                     @if($video->thumbnail)
                                                         @php
-                                                            // Generate URL for thumbnail - use url() for public files, temporaryUrl() for private
+                                                            // Generate URL for thumbnail - construct S3 URL manually
                                                             $thumbnailUrl = null;
                                                             try {
                                                                 if (filter_var($video->thumbnail, FILTER_VALIDATE_URL)) {
                                                                     // It's already a full URL
                                                                     $thumbnailUrl = $video->thumbnail;
                                                                 } else {
-                                                                    // Try to get public URL first (since thumbnails are public)
-                                                                    try {
-                                                                        if (!empty($video->thumbnail)) {
-                                                                            // For public files, use url() instead of temporaryUrl()
-                                                                            $thumbnailUrl = Storage::disk('s3')->url($video->thumbnail);
-                                                                        }
-                                                                    } catch (\Exception $s3Error) {
-                                                                        // If url() fails, try temporaryUrl() as fallback
-                                                                        try {
-                                                                            $thumbnailUrl = Storage::disk('s3')->temporaryUrl($video->thumbnail, now()->addMinutes(60));
-                                                                        } catch (\Exception $tempUrlError) {
-                                                                            Log::warning('Failed to generate S3 thumbnail URL', [
-                                                                                'thumbnail_path' => $video->thumbnail,
-                                                                                'url_error' => $s3Error->getMessage(),
-                                                                                'temp_url_error' => $tempUrlError->getMessage()
-                                                                            ]);
-                                                                            $thumbnailUrl = null;
+                                                                    // Construct S3 URL manually using bucket and region
+                                                                    if (!empty($video->thumbnail)) {
+                                                                        $s3Config = config('filesystems.disks.s3');
+                                                                        $bucket = $s3Config['bucket'] ?? null;
+                                                                        $region = $s3Config['region'] ?? 'us-east-1';
+                                                                        $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                                        
+                                                                        if ($bucket) {
+                                                                            // Construct S3 URL based on endpoint style
+                                                                            if ($usePathStyle) {
+                                                                                // Path-style: https://s3.region.amazonaws.com/bucket/path
+                                                                                $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                                                $thumbnailUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($video->thumbnail, '/');
+                                                                            } else {
+                                                                                // Virtual-hosted-style: https://bucket.s3.region.amazonaws.com/path
+                                                                                $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                                                $thumbnailUrl = rtrim($endpoint, '/') . '/' . ltrim($video->thumbnail, '/');
+                                                                            }
+                                                                        } else {
+                                                                            // Fallback: try Storage::disk('s3')->url()
+                                                                            try {
+                                                                                $thumbnailUrl = Storage::disk('s3')->url($video->thumbnail);
+                                                                            } catch (\Exception $urlError) {
+                                                                                // Last resort: use temporaryUrl()
+                                                                                try {
+                                                                                    $thumbnailUrl = Storage::disk('s3')->temporaryUrl($video->thumbnail, now()->addMinutes(60));
+                                                                                } catch (\Exception $tempUrlError) {
+                                                                                    Log::warning('Failed to generate S3 thumbnail URL', [
+                                                                                        'thumbnail_path' => $video->thumbnail,
+                                                                                        'url_error' => $urlError->getMessage(),
+                                                                                        'temp_url_error' => $tempUrlError->getMessage()
+                                                                                    ]);
+                                                                                    $thumbnailUrl = null;
+                                                                                }
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
