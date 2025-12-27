@@ -172,77 +172,45 @@ class VideoController extends Controller
         /** ---------------- VIDEO UPLOAD ---------------- */
         $videoFile = $request->file('video');
         $videoFileName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
-        $videoPath = 'videos/' . $videoFileName;
         
         Log::info('Attempting S3 upload', [
             'filename' => $videoFileName,
-            'full_path' => $videoPath,
+            'directory' => 'videos',
             'file_size' => $videoFile->getSize(),
+            'real_path' => $videoFile->getRealPath(),
+            'pathname' => $videoFile->getPathname(),
+            'is_valid' => $videoFile->isValid(),
         ]);
         
-        // Try putFileAs first, if it fails, use put() with stream
+        // Use putFileAs exactly like TestVideoUpload does
+        // This is the proven working method
         try {
-            $uploadedPath = Storage::disk('s3')->putFileAs('videos', $videoFile, $videoFileName);
+            $videoPath = Storage::disk('s3')->putFileAs('videos', $videoFile, $videoFileName);
             
             Log::info('putFileAs returned', [
-                'result' => $uploadedPath,
-                'type' => gettype($uploadedPath),
-                'is_false' => ($uploadedPath === false),
+                'result' => $videoPath,
+                'type' => gettype($videoPath),
+                'is_false' => ($videoPath === false),
+                'is_empty' => empty($videoPath),
             ]);
             
-            // If putFileAs returns false, try alternative method
-            if ($uploadedPath === false || empty($uploadedPath)) {
-                Log::warning('putFileAs returned false, trying put() with stream');
-                
-                // Alternative: Use put() with file stream
-                $fileStream = fopen($videoFile->getRealPath(), 'r');
-                $uploadedPath = Storage::disk('s3')->put($videoPath, $fileStream, 'private');
-                fclose($fileStream);
-                
-                if ($uploadedPath === false || empty($uploadedPath)) {
-                    throw new \Exception('Both putFileAs and put() methods failed to upload video to S3.');
-                }
-                
-                Log::info('put() with stream succeeded', ['path' => $uploadedPath]);
-            } else {
-                $videoPath = $uploadedPath; // Use the path returned by putFileAs
+            // Validate that upload was successful
+            if (!$videoPath || $videoPath === false || empty($videoPath)) {
+                Log::error('putFileAs returned invalid path', [
+                    'returned_value' => var_export($videoPath, true),
+                    'type' => gettype($videoPath),
+                ]);
+                throw new \Exception('Video upload to S3 failed: putFileAs returned invalid path: ' . var_export($videoPath, true));
             }
             
         } catch (\Exception $uploadException) {
-            Log::error('S3 upload exception', [
+            Log::error('putFileAs threw exception', [
                 'error' => $uploadException->getMessage(),
                 'file' => $uploadException->getFile(),
                 'line' => $uploadException->getLine(),
                 'trace' => $uploadException->getTraceAsString(),
             ]);
-            
-            // Try fallback method
-            try {
-                Log::info('Attempting fallback upload method with put()');
-                $fileStream = fopen($videoFile->getRealPath(), 'r');
-                $videoPath = Storage::disk('s3')->put($videoPath, $fileStream, 'private');
-                fclose($fileStream);
-                
-                if ($videoPath === false || empty($videoPath)) {
-                    throw new \Exception('Fallback upload method also failed.');
-                }
-                
-                Log::info('Fallback upload succeeded', ['path' => $videoPath]);
-            } catch (\Exception $fallbackException) {
-                Log::error('Fallback upload also failed', [
-                    'error' => $fallbackException->getMessage(),
-                ]);
-                throw new \Exception('Video upload to S3 failed: ' . $uploadException->getMessage() . ' | Fallback: ' . $fallbackException->getMessage());
-            }
-        }
-        
-        // Validate that upload was successful
-        if (!$videoPath || $videoPath === false || empty($videoPath) || $videoPath === '0') {
-            Log::error('Final video path validation failed', [
-                'returned_value' => var_export($videoPath, true),
-                'type' => gettype($videoPath),
-            ]);
-            throw new \Exception('Video upload to S3 failed: Invalid path after upload: ' . var_export($videoPath, true));
+            throw new \Exception('Video upload to S3 failed: ' . $uploadException->getMessage());
         }
         
         Log::info('Video uploaded to S3 successfully', ['path' => $videoPath]);
