@@ -248,7 +248,51 @@
                                 <a href="{{ route('videos.show', $video) }}" class="group">
                                     <div class="bg-gray-100 rounded-lg overflow-hidden aspect-video mb-3 relative">
                                         @if($video->thumbnail)
-                                            <img src="{{ $video->thumbnail }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                            @php
+                                                // Generate thumbnail URL for dashboard videos
+                                                $thumbUrl = null;
+                                                try {
+                                                    $thumbPath = $video->thumbnail;
+                                                    if (strpos($thumbPath, 's3://') === 0) {
+                                                        $thumbPath = substr($thumbPath, 5);
+                                                        $s3Config = config('filesystems.disks.s3');
+                                                        $bucket = $s3Config['bucket'] ?? null;
+                                                        if ($bucket && strpos($thumbPath, $bucket . '/') === 0) {
+                                                            $thumbPath = substr($thumbPath, strlen($bucket) + 1);
+                                                        }
+                                                    }
+                                                    
+                                                    if (!filter_var($thumbPath, FILTER_VALIDATE_URL)) {
+                                                        $s3Config = config('filesystems.disks.s3');
+                                                        $bucket = $s3Config['bucket'] ?? null;
+                                                        $region = $s3Config['region'] ?? 'us-east-1';
+                                                        $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                        
+                                                        if ($bucket) {
+                                                            if ($usePathStyle) {
+                                                                $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                                $thumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
+                                                            } else {
+                                                                $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                                $thumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
+                                                            }
+                                                        }
+                                                    } else {
+                                                        $thumbUrl = $thumbPath;
+                                                    }
+                                                } catch (\Exception $e) {
+                                                    $thumbUrl = null;
+                                                }
+                                            @endphp
+                                            @if($thumbUrl)
+                                                <img src="{{ $thumbUrl }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                            @else
+                                                <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                                                    <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </div>
+                                            @endif
                                         @else
                                             <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
                                                 <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
