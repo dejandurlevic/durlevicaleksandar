@@ -119,14 +119,100 @@
                             <!-- Video Player -->
                             <div class="aspect-video bg-black relative">
                                 @if($video->video_path)
-                                    <video 
-                                        controls 
-                                        class="w-full h-full"
-                                        poster="{{ $video->thumbnail ?? '' }}"
-                                    >
-                                        <source src="{{ $video->video_path }}" type="video/mp4">
-                                        Your browser does not support the video tag.
-                                    </video>
+                                    @php
+                                        // Generate video URL - construct S3 URL or use presigned URL
+                                        $videoUrl = null;
+                                        $thumbnailUrl = null;
+                                        
+                                        try {
+                                            // Process video_path - remove s3:// prefix if present
+                                            $videoPath = $video->video_path;
+                                            if (strpos($videoPath, 's3://') === 0) {
+                                                $videoPath = substr($videoPath, 5);
+                                                $s3Config = config('filesystems.disks.s3');
+                                                $bucket = $s3Config['bucket'] ?? null;
+                                                if ($bucket && strpos($videoPath, $bucket . '/') === 0) {
+                                                    $videoPath = substr($videoPath, strlen($bucket) + 1);
+                                                }
+                                            }
+                                            
+                                            // Generate presigned URL for video (private files need presigned URLs)
+                                            try {
+                                                $videoUrl = Storage::disk('s3')->temporaryUrl($videoPath, now()->addMinutes(60));
+                                            } catch (\Exception $e) {
+                                                // Fallback: construct S3 URL manually
+                                                $s3Config = config('filesystems.disks.s3');
+                                                $bucket = $s3Config['bucket'] ?? null;
+                                                $region = $s3Config['region'] ?? 'us-east-1';
+                                                $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                
+                                                if ($bucket) {
+                                                    if ($usePathStyle) {
+                                                        $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                        $videoUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($videoPath, '/');
+                                                    } else {
+                                                        $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                        $videoUrl = rtrim($endpoint, '/') . '/' . ltrim($videoPath, '/');
+                                                    }
+                                                }
+                                            }
+                                            
+                                            // Process thumbnail for poster
+                                            if ($video->thumbnail) {
+                                                $thumbPath = $video->thumbnail;
+                                                if (strpos($thumbPath, 's3://') === 0) {
+                                                    $thumbPath = substr($thumbPath, 5);
+                                                    $s3Config = config('filesystems.disks.s3');
+                                                    $bucket = $s3Config['bucket'] ?? null;
+                                                    if ($bucket && strpos($thumbPath, $bucket . '/') === 0) {
+                                                        $thumbPath = substr($thumbPath, strlen($bucket) + 1);
+                                                    }
+                                                }
+                                                
+                                                // Construct S3 URL for thumbnail (public files)
+                                                $s3Config = config('filesystems.disks.s3');
+                                                $bucket = $s3Config['bucket'] ?? null;
+                                                $region = $s3Config['region'] ?? 'us-east-1';
+                                                $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                
+                                                if ($bucket) {
+                                                    if ($usePathStyle) {
+                                                        $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                        $thumbnailUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
+                                                    } else {
+                                                        $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                        $thumbnailUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
+                                                    }
+                                                }
+                                            }
+                                        } catch (\Exception $e) {
+                                            \Log::warning('Error generating video/thumbnail URLs', [
+                                                'error' => $e->getMessage(),
+                                                'video_path' => $video->video_path ?? 'null',
+                                                'thumbnail' => $video->thumbnail ?? 'null'
+                                            ]);
+                                        }
+                                    @endphp
+                                    
+                                    @if($videoUrl)
+                                        <video 
+                                            controls 
+                                            class="w-full h-full"
+                                            @if($thumbnailUrl) poster="{{ $thumbnailUrl }}" @endif
+                                        >
+                                            <source src="{{ $videoUrl }}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center">
+                                            <div class="text-center text-white">
+                                                <svg class="w-20 h-20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                </svg>
+                                                <p class="text-lg">Video not available</p>
+                                            </div>
+                                        </div>
+                                    @endif
                                 @else
                                     <div class="w-full h-full flex items-center justify-center">
                                         <div class="text-center text-white">
@@ -175,7 +261,51 @@
                                             <div class="flex gap-3 sm:gap-4">
                                                 <div class="relative w-24 h-16 sm:w-32 sm:h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                                     @if($relatedVideo->thumbnail)
-                                                        <img src="{{ $relatedVideo->thumbnail }}" alt="{{ $relatedVideo->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                                        @php
+                                                            // Generate thumbnail URL for related videos
+                                                            $relatedThumbUrl = null;
+                                                            try {
+                                                                $thumbPath = $relatedVideo->thumbnail;
+                                                                if (strpos($thumbPath, 's3://') === 0) {
+                                                                    $thumbPath = substr($thumbPath, 5);
+                                                                    $s3Config = config('filesystems.disks.s3');
+                                                                    $bucket = $s3Config['bucket'] ?? null;
+                                                                    if ($bucket && strpos($thumbPath, $bucket . '/') === 0) {
+                                                                        $thumbPath = substr($thumbPath, strlen($bucket) + 1);
+                                                                    }
+                                                                }
+                                                                
+                                                                if (!filter_var($thumbPath, FILTER_VALIDATE_URL)) {
+                                                                    $s3Config = config('filesystems.disks.s3');
+                                                                    $bucket = $s3Config['bucket'] ?? null;
+                                                                    $region = $s3Config['region'] ?? 'us-east-1';
+                                                                    $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                                    
+                                                                    if ($bucket) {
+                                                                        if ($usePathStyle) {
+                                                                            $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                                            $relatedThumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
+                                                                        } else {
+                                                                            $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                                            $relatedThumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    $relatedThumbUrl = $thumbPath;
+                                                                }
+                                                            } catch (\Exception $e) {
+                                                                $relatedThumbUrl = null;
+                                                            }
+                                                        @endphp
+                                                        @if($relatedThumbUrl)
+                                                            <img src="{{ $relatedThumbUrl }}" alt="{{ $relatedVideo->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                                        @else
+                                                            <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                                                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                                </svg>
+                                                            </div>
+                                                        @endif
                                                     @else
                                                         <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
                                                             <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
