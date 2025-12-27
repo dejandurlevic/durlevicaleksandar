@@ -153,6 +153,14 @@ class VideoController extends Controller
      */
     public function store(Request $request)
 {
+
+    dd([
+        'files' => $request->allFiles(),
+        'has_video' => $request->hasFile('video'),
+        'file_error' => $request->file('video')?->getError(),
+        'file_error_message' => $request->file('video')?->getErrorMessage(),
+    ]);
+
     $validated = $request->validate([
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
