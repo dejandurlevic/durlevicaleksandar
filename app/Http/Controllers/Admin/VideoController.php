@@ -42,6 +42,14 @@ class VideoController extends Controller
                     )
                     ->latest('videos.created_at')
                     ->paginate(15);
+                    
+                // Ensure created_at is a Carbon instance for all videos
+                $videos->getCollection()->transform(function ($video) {
+                    if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
+                        $video->created_at = \Carbon\Carbon::parse($video->created_at);
+                    }
+                    return $video;
+                });
             } catch (\Exception $joinError) {
                 // If leftJoin fails, try without join (fallback)
                 Log::warning('leftJoin failed, falling back to simple query', [
@@ -52,7 +60,11 @@ class VideoController extends Controller
                 $videos = Video::latest()->paginate(15);
                 // Manually add category_name as null for all videos
                 $videos->getCollection()->transform(function ($video) {
-                    $video->category_name = null;
+                    $video->category_name = $video->category ? $video->category->name : null;
+                    // Ensure created_at is a Carbon instance
+                    if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
+                        $video->created_at = \Carbon\Carbon::parse($video->created_at);
+                    }
                     return $video;
                 });
             }
@@ -73,6 +85,8 @@ class VideoController extends Controller
         } catch (\Exception $e) {
             Log::error('Error in admin videos index', [
                 'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             
@@ -81,13 +95,19 @@ class VideoController extends Controller
                 $videos = Video::latest()->paginate(15);
                 // Manually add category_name as null
                 $videos->getCollection()->transform(function ($video) {
-                    $video->category_name = null;
+                    $video->category_name = $video->category ? $video->category->name : null;
+                    // Ensure created_at is a Carbon instance
+                    if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
+                        $video->created_at = \Carbon\Carbon::parse($video->created_at);
+                    }
                     return $video;
                 });
                 return view('admin.videos.index', compact('videos'))->with('error', 'Some videos may not display correctly.');
             } catch (\Exception $e2) {
                 Log::error('Complete failure in admin videos index', [
                     'error' => $e2->getMessage(),
+                    'file' => $e2->getFile(),
+                    'line' => $e2->getLine(),
                     'trace' => $e2->getTraceAsString()
                 ]);
                 abort(500, 'Unable to load videos. Please check the logs.');

@@ -243,7 +243,7 @@
                                                 @endif
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500 hidden lg:table-cell">
-                                                {{ $video->created_at ? $video->created_at->format('M d, Y') : 'N/A' }}
+                                                {{ $video->created_at && $video->created_at instanceof \Carbon\Carbon ? $video->created_at->format('M d, Y') : ($video->created_at ? \Carbon\Carbon::parse($video->created_at)->format('M d, Y') : 'N/A') }}
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium" onclick="event.stopPropagation();">
                                                 <div class="flex items-center justify-end space-x-2 sm:space-x-3">
