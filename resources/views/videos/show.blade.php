@@ -169,35 +169,26 @@
                                                     }
                                                 }
                                                 
-                                                // Try Storage::disk('s3')->url() first
+                                                // Generate presigned URL for thumbnail (same as video)
                                                 try {
-                                                    $thumbnailUrl = Storage::disk('s3')->url($thumbPath);
-                                                    // If url() returns relative path, construct full URL
-                                                    if (strpos($thumbnailUrl, 'http') !== 0) {
-                                                        throw new \Exception('url() returned relative path');
-                                                    }
-                                                } catch (\Exception $urlError) {
-                                                    // Fallback: try temporaryUrl() (presigned URL)
-                                                    try {
-                                                        $thumbnailUrl = Storage::disk('s3')->temporaryUrl($thumbPath, now()->addMinutes(60));
-                                                    } catch (\Exception $tempUrlError) {
-                                                        // Last resort: construct S3 URL manually
-                                                        $s3Config = config('filesystems.disks.s3');
-                                                        $bucket = $s3Config['bucket'] ?? null;
-                                                        $region = $s3Config['region'] ?? 'us-east-1';
-                                                        $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
-                                                        
-                                                        if ($bucket) {
-                                                            if ($usePathStyle) {
-                                                                $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
-                                                                $thumbnailUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
-                                                            } else {
-                                                                $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
-                                                                $thumbnailUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
-                                                            }
+                                                    $thumbnailUrl = Storage::disk('s3')->temporaryUrl($thumbPath, now()->addMinutes(60));
+                                                } catch (\Exception $e) {
+                                                    // Fallback: construct S3 URL manually
+                                                    $s3Config = config('filesystems.disks.s3');
+                                                    $bucket = $s3Config['bucket'] ?? null;
+                                                    $region = $s3Config['region'] ?? 'us-east-1';
+                                                    $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                    
+                                                    if ($bucket) {
+                                                        if ($usePathStyle) {
+                                                            $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                            $thumbnailUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
                                                         } else {
-                                                            $thumbnailUrl = null;
+                                                            $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                            $thumbnailUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
                                                         }
+                                                    } else {
+                                                        $thumbnailUrl = null;
                                                     }
                                                 }
                                             }
@@ -292,33 +283,26 @@
                                                                 }
                                                                 
                                                                 if (!filter_var($thumbPath, FILTER_VALIDATE_URL)) {
-                                                                    // Try Storage::disk('s3')->url() first
+                                                                    // Generate presigned URL for thumbnail (same as video)
                                                                     try {
-                                                                        $relatedThumbUrl = Storage::disk('s3')->url($thumbPath);
-                                                                        // If url() returns relative path, construct full URL
-                                                                        if (strpos($relatedThumbUrl, 'http') !== 0) {
-                                                                            throw new \Exception('url() returned relative path');
-                                                                        }
-                                                                    } catch (\Exception $urlError) {
-                                                                        // Fallback: try temporaryUrl() (presigned URL)
-                                                                        try {
-                                                                            $relatedThumbUrl = Storage::disk('s3')->temporaryUrl($thumbPath, now()->addMinutes(60));
-                                                                        } catch (\Exception $tempUrlError) {
-                                                                            // Last resort: construct S3 URL manually
-                                                                            $s3Config = config('filesystems.disks.s3');
-                                                                            $bucket = $s3Config['bucket'] ?? null;
-                                                                            $region = $s3Config['region'] ?? 'us-east-1';
-                                                                            $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
-                                                                            
-                                                                            if ($bucket) {
-                                                                                if ($usePathStyle) {
-                                                                                    $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
-                                                                                    $relatedThumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
-                                                                                } else {
-                                                                                    $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
-                                                                                    $relatedThumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
-                                                                                }
+                                                                        $relatedThumbUrl = Storage::disk('s3')->temporaryUrl($thumbPath, now()->addMinutes(60));
+                                                                    } catch (\Exception $e) {
+                                                                        // Fallback: construct S3 URL manually
+                                                                        $s3Config = config('filesystems.disks.s3');
+                                                                        $bucket = $s3Config['bucket'] ?? null;
+                                                                        $region = $s3Config['region'] ?? 'us-east-1';
+                                                                        $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                                        
+                                                                        if ($bucket) {
+                                                                            if ($usePathStyle) {
+                                                                                $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                                                $relatedThumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
+                                                                            } else {
+                                                                                $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                                                $relatedThumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
                                                                             }
+                                                                        } else {
+                                                                            $relatedThumbUrl = null;
                                                                         }
                                                                     }
                                                                 } else {
