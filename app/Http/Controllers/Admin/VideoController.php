@@ -469,15 +469,34 @@ class VideoController extends Controller
                 // Create S3 client directly using AWS SDK
                 $s3Config = config('filesystems.disks.s3');
                 
+                // Log S3 config for debugging (without exposing secrets)
+                Log::info('DEBUG: S3 config check', [
+                    'bucket' => $s3Config['bucket'] ?? 'NOT SET',
+                    'bucket_empty' => empty($s3Config['bucket']),
+                    'bucket_type' => gettype($s3Config['bucket'] ?? null),
+                    'has_key' => !empty($s3Config['key']),
+                    'has_secret' => !empty($s3Config['secret']),
+                    'region' => $s3Config['region'] ?? 'NOT SET',
+                    'region_empty' => empty($s3Config['region']),
+                ]);
+                
                 // Validate S3 configuration
-                if (empty($s3Config['bucket'])) {
-                    throw new \Exception('S3 bucket is not configured. Please check your .env file (AWS_BUCKET).');
+                if (empty($s3Config['bucket']) || $s3Config['bucket'] === null) {
+                    $errorMsg = 'S3 bucket is not configured. Please check your .env file (AWS_BUCKET). ';
+                    $errorMsg .= 'Current value: ' . var_export($s3Config['bucket'] ?? 'null', true);
+                    $errorMsg .= '. Try running: php artisan config:clear';
+                    throw new \Exception($errorMsg);
                 }
                 if (empty($s3Config['key']) || empty($s3Config['secret'])) {
-                    throw new \Exception('S3 credentials are not configured. Please check your .env file (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY).');
+                    $errorMsg = 'S3 credentials are not configured. Please check your .env file (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY). ';
+                    $errorMsg .= 'Try running: php artisan config:clear';
+                    throw new \Exception($errorMsg);
                 }
-                if (empty($s3Config['region'])) {
-                    throw new \Exception('S3 region is not configured. Please check your .env file (AWS_DEFAULT_REGION).');
+                if (empty($s3Config['region']) || $s3Config['region'] === null) {
+                    $errorMsg = 'S3 region is not configured. Please check your .env file (AWS_DEFAULT_REGION). ';
+                    $errorMsg .= 'Current value: ' . var_export($s3Config['region'] ?? 'null', true);
+                    $errorMsg .= '. Try running: php artisan config:clear';
+                    throw new \Exception($errorMsg);
                 }
                 
                 $s3Client = new S3Client([
@@ -742,15 +761,33 @@ class VideoController extends Controller
         // Create S3 client directly using AWS SDK
         $s3Config = config('filesystems.disks.s3');
         
+        // Log S3 config for debugging (without exposing secrets)
+        Log::info('DEBUG: S3 config check (uploadLargeFileToS3)', [
+            'bucket' => $s3Config['bucket'] ?? 'NOT SET',
+            'bucket_empty' => empty($s3Config['bucket']),
+            'bucket_type' => gettype($s3Config['bucket'] ?? null),
+            'has_key' => !empty($s3Config['key']),
+            'has_secret' => !empty($s3Config['secret']),
+            'region' => $s3Config['region'] ?? 'NOT SET',
+        ]);
+        
         // Validate S3 configuration
-        if (empty($s3Config['bucket'])) {
-            throw new \Exception('S3 bucket is not configured. Please check your .env file (AWS_BUCKET).');
+        if (empty($s3Config['bucket']) || $s3Config['bucket'] === null) {
+            $errorMsg = 'S3 bucket is not configured. Please check your .env file (AWS_BUCKET). ';
+            $errorMsg .= 'Current value: ' . var_export($s3Config['bucket'] ?? 'null', true);
+            $errorMsg .= '. Try running: php artisan config:clear';
+            throw new \Exception($errorMsg);
         }
         if (empty($s3Config['key']) || empty($s3Config['secret'])) {
-            throw new \Exception('S3 credentials are not configured. Please check your .env file (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY).');
+            $errorMsg = 'S3 credentials are not configured. Please check your .env file (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY). ';
+            $errorMsg .= 'Try running: php artisan config:clear';
+            throw new \Exception($errorMsg);
         }
-        if (empty($s3Config['region'])) {
-            throw new \Exception('S3 region is not configured. Please check your .env file (AWS_DEFAULT_REGION).');
+        if (empty($s3Config['region']) || $s3Config['region'] === null) {
+            $errorMsg = 'S3 region is not configured. Please check your .env file (AWS_DEFAULT_REGION). ';
+            $errorMsg .= 'Current value: ' . var_export($s3Config['region'] ?? 'null', true);
+            $errorMsg .= '. Try running: php artisan config:clear';
+            throw new \Exception($errorMsg);
         }
         
         $s3Client = new S3Client([
