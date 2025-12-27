@@ -228,7 +228,7 @@
                                         <label for="video" class="relative cursor-pointer bg-white rounded-md font-medium text-gray-900 hover:text-gray-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-gray-900">
                                             <span>Upload a video file</span>
                                             <input id="video" name="video" type="file" accept="video/mp4,video/mov,video/webm,video/avi" required
-                                                class="sr-only" @change="uploading = false">
+                                                class="sr-only">
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
@@ -319,7 +319,8 @@
                         if (!form.checkValidity()) {
                             console.error('Form validation failed');
                             form.reportValidity(); // Show browser validation messages
-                            return; // Don't prevent default - let browser show validation
+                            e.preventDefault(); // Prevent submission if invalid
+                            return;
                         }
                         
                         // Log form data for debugging
@@ -338,26 +339,22 @@
                             console.log('Video type:', videoFile.type);
                         }
 
-                        // Set uploading state via Alpine.js after validation passes
-                        if (window.Alpine && form.__x) {
-                            form.__x.$data.uploading = true;
-                        }
+                        // Set uploading state via Alpine.js AFTER allowing form to submit
+                        // Don't set it before, as it might disable the button
+                        setTimeout(function() {
+                            if (window.Alpine && form.__x) {
+                                form.__x.$data.uploading = true;
+                            }
+                        }, 100); // Small delay to allow form submission to proceed
                         
                         console.log('Form is valid, allowing submission...');
-
+                        
                         // Set timeout to detect if upload is stuck
                         let timeoutId = setTimeout(function() {
                             console.error('=== UPLOAD TIMEOUT ===');
                             console.error('Upload timeout - form submission taking too long (5 minutes)');
                             
                             // Reset button state
-                            submitButton.disabled = false;
-                            const buttonContent = submitButton.querySelector('span');
-                            if (buttonContent) {
-                                buttonContent.textContent = 'Create Video';
-                            }
-                            
-                            // Remove uploading state from Alpine
                             if (window.Alpine && form.__x) {
                                 form.__x.$data.uploading = false;
                             }
@@ -374,19 +371,7 @@
                                         </svg>
                                         <div>
                                             <p class="text-sm font-semibold text-red-800">Upload Timeout</p>
-                                            <p class="text-sm text-red-700 mt-1">The upload is taking too long. This might be due to:</p>
-                                            <ul class="list-disc list-inside text-sm text-red-700 mt-2 ml-2">
-                                                <li>File size too large (check PHP upload limits: upload_max_filesize, post_max_size)</li>
-                                                <li>Network connection issues</li>
-                                                <li>Server timeout settings (max_execution_time)</li>
-                                                <li>S3 connection problems</li>
-                                            </ul>
-                                            <p class="text-sm text-red-700 mt-2"><strong>Check:</strong></p>
-                                            <ul class="list-disc list-inside text-sm text-red-700 mt-1 ml-2">
-                                                <li>Browser console (F12) for network errors</li>
-                                                <li>Laravel logs: storage/logs/laravel.log</li>
-                                                <li>PHP configuration: php.ini settings</li>
-                                            </ul>
+                                            <p class="text-sm text-red-700 mt-1">The upload is taking too long. Please check the browser console and server logs.</p>
                                         </div>
                                     </div>
                                 `;
@@ -399,6 +384,8 @@
 
                         // Store timeout ID for cleanup
                         form.dataset.timeoutId = timeoutId;
+                        
+                        // Allow form to submit normally - don't prevent default
                     });
 
                     // Handle form errors from server response
