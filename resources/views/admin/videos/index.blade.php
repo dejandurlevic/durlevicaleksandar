@@ -172,25 +172,31 @@
                                                 <div class="flex items-center">
                                                     @if($video->thumbnail)
                                                         @php
-                                                            // Generate presigned URL for thumbnail if it's on S3 (not a full URL)
+                                                            // Generate URL for thumbnail - use url() for public files, temporaryUrl() for private
                                                             $thumbnailUrl = null;
                                                             try {
                                                                 if (filter_var($video->thumbnail, FILTER_VALIDATE_URL)) {
                                                                     // It's already a full URL
                                                                     $thumbnailUrl = $video->thumbnail;
                                                                 } else {
-                                                                    // Try to generate presigned URL, but don't check exists() as it may throw
+                                                                    // Try to get public URL first (since thumbnails are public)
                                                                     try {
                                                                         if (!empty($video->thumbnail)) {
-                                                                            $thumbnailUrl = Storage::disk('s3')->temporaryUrl($video->thumbnail, now()->addMinutes(60));
+                                                                            // For public files, use url() instead of temporaryUrl()
+                                                                            $thumbnailUrl = Storage::disk('s3')->url($video->thumbnail);
                                                                         }
                                                                     } catch (\Exception $s3Error) {
-                                                                        // If S3 fails, log and use placeholder
-                                                                        Log::warning('Failed to generate S3 thumbnail URL', [
-                                                                            'thumbnail_path' => $video->thumbnail,
-                                                                            'error' => $s3Error->getMessage()
-                                                                        ]);
-                                                                        $thumbnailUrl = null;
+                                                                        // If url() fails, try temporaryUrl() as fallback
+                                                                        try {
+                                                                            $thumbnailUrl = Storage::disk('s3')->temporaryUrl($video->thumbnail, now()->addMinutes(60));
+                                                                        } catch (\Exception $tempUrlError) {
+                                                                            Log::warning('Failed to generate S3 thumbnail URL', [
+                                                                                'thumbnail_path' => $video->thumbnail,
+                                                                                'url_error' => $s3Error->getMessage(),
+                                                                                'temp_url_error' => $tempUrlError->getMessage()
+                                                                            ]);
+                                                                            $thumbnailUrl = null;
+                                                                        }
                                                                     }
                                                                 }
                                                             } catch (\Exception $e) {
