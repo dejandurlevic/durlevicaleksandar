@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'index'])->name('videos.index');
         Route::get('/videos/debug', [\App\Http\Controllers\Admin\VideoController::class, 'debug'])->name('videos.debug');
         Route::get('/videos/create', [\App\Http\Controllers\Admin\VideoController::class, 'create'])->name('videos.create');
-        Route::post('/videos/store', [\App\Http\Controllers\Admin\VideoController::class, 'store'])->name('videos.store');
+        Route::post('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'store'])->name('videos.store');
         Route::get('/videos/{video}/preview', [\App\Http\Controllers\Admin\VideoController::class, 'preview'])->name('videos.preview');
         Route::delete('/videos/{video}', [\App\Http\Controllers\Admin\VideoController::class, 'destroy'])->name('videos.destroy');
         

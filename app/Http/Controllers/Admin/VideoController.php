@@ -166,27 +166,64 @@ class VideoController extends Controller
         Log::info('Video upload request received', [
             'title' => $validated['title'],
             'video_size' => $request->file('video')->getSize(),
+            'video_name' => $request->file('video')->getClientOriginalName(),
         ]);
 
         /** ---------------- VIDEO UPLOAD ---------------- */
         $videoFile = $request->file('video');
         $videoFileName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
         
+        Log::info('Attempting S3 upload', [
+            'filename' => $videoFileName,
+            'directory' => 'videos',
+            'file_size' => $videoFile->getSize(),
+        ]);
+        
         // Use putFileAs instead of put() with file_get_contents()
         // This handles large files better by using streams
-        $videoPath = Storage::disk('s3')->putFileAs('videos', $videoFile, $videoFileName);
-        
-        // Validate that upload was successful
-        if (!$videoPath || $videoPath === false || empty($videoPath)) {
-            throw new \Exception('Video upload to S3 failed: putFileAs returned invalid path.');
+        // Wrap in try-catch to catch any exceptions
+        try {
+            $videoPath = Storage::disk('s3')->putFileAs('videos', $videoFile, $videoFileName);
+            
+            Log::info('putFileAs returned', [
+                'result' => $videoPath,
+                'type' => gettype($videoPath),
+                'is_false' => ($videoPath === false),
+                'is_empty' => empty($videoPath),
+            ]);
+            
+        } catch (\Exception $uploadException) {
+            Log::error('putFileAs threw exception', [
+                'error' => $uploadException->getMessage(),
+                'file' => $uploadException->getFile(),
+                'line' => $uploadException->getLine(),
+                'trace' => $uploadException->getTraceAsString(),
+            ]);
+            throw new \Exception('Video upload to S3 failed: ' . $uploadException->getMessage());
         }
         
-        Log::info('Video uploaded to S3', ['path' => $videoPath]);
+        // Validate that upload was successful
+        if (!$videoPath || $videoPath === false || empty($videoPath) || $videoPath === '0') {
+            Log::error('putFileAs returned invalid path', [
+                'returned_value' => var_export($videoPath, true),
+                'type' => gettype($videoPath),
+            ]);
+            throw new \Exception('Video upload to S3 failed: putFileAs returned invalid path: ' . var_export($videoPath, true));
+        }
+        
+        Log::info('Video uploaded to S3 successfully', ['path' => $videoPath]);
         
         // Verify file exists on S3
         try {
-            if (!Storage::disk('s3')->exists($videoPath)) {
-                throw new \Exception('Uploaded video file not found on S3: ' . $videoPath);
+            $exists = Storage::disk('s3')->exists($videoPath);
+            Log::info('S3 file existence check', [
+                'path' => $videoPath,
+                'exists' => $exists,
+            ]);
+            
+            if (!$exists) {
+                Log::warning('Uploaded video file not found on S3', ['path' => $videoPath]);
+                // Don't throw - might be a timing issue or permissions
             }
         } catch (\Exception $e) {
             Log::warning('Could not verify video exists on S3', [
@@ -199,8 +236,12 @@ class VideoController extends Controller
         // Set visibility separately (putFileAs doesn't accept visibility parameter)
         try {
             Storage::disk('s3')->setVisibility($videoPath, 'private');
+            Log::info('Video visibility set to private', ['path' => $videoPath]);
         } catch (\Exception $e) {
-            Log::warning('Could not set video visibility', ['error' => $e->getMessage()]);
+            Log::warning('Could not set video visibility', [
+                'path' => $videoPath,
+                'error' => $e->getMessage()
+            ]);
             // Continue anyway - file is uploaded
         }
 
@@ -211,23 +252,31 @@ class VideoController extends Controller
             $thumb = $request->file('thumbnail');
             $thumbnailFileName = Str::uuid() . '.' . $thumb->getClientOriginalExtension();
             
-            // Use putFileAs for thumbnail too
-            $thumbnailPath = Storage::disk('s3')->putFileAs('thumbnails', $thumb, $thumbnailFileName);
-            
-            // Validate thumbnail upload
-            if (!$thumbnailPath || $thumbnailPath === false || empty($thumbnailPath)) {
-                Log::warning('Thumbnail upload failed, continuing without thumbnail');
-                $thumbnailPath = null;
-            } else {
-                // Set thumbnail as public
-                try {
-                    Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
-                } catch (\Exception $e) {
-                    Log::warning('Could not set thumbnail visibility', ['error' => $e->getMessage()]);
-                    // Continue anyway - file is uploaded
-                }
+            try {
+                // Use putFileAs for thumbnail too
+                $thumbnailPath = Storage::disk('s3')->putFileAs('thumbnails', $thumb, $thumbnailFileName);
                 
-                Log::info('Thumbnail uploaded to S3', ['path' => $thumbnailPath]);
+                // Validate thumbnail upload
+                if (!$thumbnailPath || $thumbnailPath === false || empty($thumbnailPath)) {
+                    Log::warning('Thumbnail upload failed, continuing without thumbnail', [
+                        'returned_value' => var_export($thumbnailPath, true),
+                    ]);
+                    $thumbnailPath = null;
+                } else {
+                    // Set thumbnail as public
+                    try {
+                        Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
+                        Log::info('Thumbnail uploaded to S3', ['path' => $thumbnailPath]);
+                    } catch (\Exception $e) {
+                        Log::warning('Could not set thumbnail visibility', ['error' => $e->getMessage()]);
+                        // Continue anyway - file is uploaded
+                    }
+                }
+            } catch (\Exception $thumbException) {
+                Log::warning('Thumbnail upload exception', [
+                    'error' => $thumbException->getMessage(),
+                ]);
+                $thumbnailPath = null;
             }
         }
 
