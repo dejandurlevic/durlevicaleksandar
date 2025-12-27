@@ -153,6 +153,34 @@ class VideoController extends Controller
      */
     public function store(Request $request)
 {
+    // #region agent log
+    $logFile = base_path('.cursor/debug.log');
+    $logDir = base_path('.cursor');
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0755, true);
+    }
+    $logEntry = json_encode([
+        'sessionId' => 'debug-session',
+        'runId' => 'run1',
+        'hypothesisId' => 'ALL',
+        'location' => 'VideoController.php:154',
+        'message' => 'store() method entry',
+        'data' => [
+            'has_video' => $request->hasFile('video'),
+            'has_thumbnail' => $request->hasFile('thumbnail'),
+            'log_file_path' => $logFile,
+            'log_dir_exists' => is_dir($logDir),
+        ],
+        'timestamp' => time() * 1000
+    ]) . "\n";
+    $writeResult = @file_put_contents($logFile, $logEntry, FILE_APPEND);
+    Log::info('DEBUG: store() method entry', [
+        'has_video' => $request->hasFile('video'),
+        'log_write_result' => $writeResult,
+        'log_file' => $logFile
+    ]);
+    // #endregion
+
     // Check PHP upload configuration before validation
     $uploadMaxSize = ini_get('upload_max_filesize');
     $postMaxSize = ini_get('post_max_size');
@@ -215,6 +243,24 @@ class VideoController extends Controller
             ->with('error', 'Uploaded file is not valid: ' . $videoFile->getErrorMessage());
     }
 
+    // #region agent log
+    $logEntry = json_encode([
+        'sessionId' => 'debug-session',
+        'runId' => 'run1',
+        'hypothesisId' => 'ALL',
+        'location' => 'VideoController.php:218',
+        'message' => 'Before validation',
+        'data' => [
+            'title' => $request->input('title'),
+            'category_id' => $request->input('category_id'),
+            'video_file_name' => $request->hasFile('video') ? $request->file('video')->getClientOriginalName() : 'none',
+            'video_file_size' => $request->hasFile('video') ? $request->file('video')->getSize() : 0,
+        ],
+        'timestamp' => time() * 1000
+    ]) . "\n";
+    @file_put_contents($logFile, $logEntry, FILE_APPEND);
+    // #endregion
+
     $validated = $request->validate([
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
@@ -224,7 +270,97 @@ class VideoController extends Controller
         'is_premium' => 'boolean',
     ]);
 
+    // #region agent log
+    $logEntry = json_encode([
+        'sessionId' => 'debug-session',
+        'runId' => 'run1',
+        'hypothesisId' => 'ALL',
+        'location' => 'VideoController.php:235',
+        'message' => 'After validation, entering try block',
+        'data' => ['validated' => true],
+        'timestamp' => time() * 1000
+    ]) . "\n";
+    @file_put_contents($logFile, $logEntry, FILE_APPEND);
+    // #endregion
+
     try {
+        // #region agent log
+        $logFile = base_path('.cursor/debug.log');
+        $logEntry = json_encode([
+            'sessionId' => 'debug-session',
+            'runId' => 'run1',
+            'hypothesisId' => 'A',
+            'location' => 'VideoController.php:227',
+            'message' => 'Entering video upload try block',
+            'data' => [
+                'file_size' => $videoFile->getSize(),
+                'real_path' => $videoFile->getRealPath(),
+                'is_valid' => $videoFile->isValid(),
+                'extension' => $videoFile->getClientOriginalExtension(),
+            ],
+            'timestamp' => time() * 1000
+        ]) . "\n";
+        @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        // #endregion
+
+        // Check S3 configuration (without exposing secrets)
+        // #region agent log
+        $s3Config = config('filesystems.disks.s3');
+        $logEntry = json_encode([
+            'sessionId' => 'debug-session',
+            'runId' => 'run1',
+            'hypothesisId' => 'A',
+            'location' => 'VideoController.php:245',
+            'message' => 'S3 configuration check',
+            'data' => [
+                'driver' => $s3Config['driver'] ?? 'missing',
+                'region' => $s3Config['region'] ?? 'missing',
+                'bucket' => $s3Config['bucket'] ?? 'missing',
+                'has_key' => !empty($s3Config['key']),
+                'has_secret' => !empty($s3Config['secret']),
+                'endpoint' => $s3Config['endpoint'] ?? 'not_set',
+            ],
+            'timestamp' => time() * 1000
+        ]) . "\n";
+        @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        // #endregion
+
+        // Test S3 connection before upload
+        // #region agent log
+        try {
+            $testFile = 'test-connection-' . time() . '.txt';
+            $testResult = Storage::disk('s3')->put($testFile, 'test');
+            $logEntry = json_encode([
+                'sessionId' => 'debug-session',
+                'runId' => 'run1',
+                'hypothesisId' => 'D',
+                'location' => 'VideoController.php:265',
+                'message' => 'S3 connection test',
+                'data' => [
+                    'test_result' => $testResult,
+                    'test_result_type' => gettype($testResult),
+                    'connection_success' => ($testResult !== false),
+                ],
+                'timestamp' => time() * 1000
+            ]) . "\n";
+            @file_put_contents($logFile, $logEntry, FILE_APPEND);
+            if ($testResult) {
+                Storage::disk('s3')->delete($testFile);
+            }
+        } catch (\Exception $e) {
+            $logEntry = json_encode([
+                'sessionId' => 'debug-session',
+                'runId' => 'run1',
+                'hypothesisId' => 'D',
+                'location' => 'VideoController.php:275',
+                'message' => 'S3 connection test exception',
+                'data' => ['error' => $e->getMessage()],
+                'timestamp' => time() * 1000
+            ]) . "\n";
+            @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        }
+        // #endregion
+
         // ✅ VIDEO UPLOAD
         $videoName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
         $videoPath = 'videos/' . $videoName;
@@ -237,12 +373,51 @@ class VideoController extends Controller
             'is_valid' => $videoFile->isValid(),
         ]);
 
+        // #region agent log
+        $logEntry = json_encode([
+            'sessionId' => 'debug-session',
+            'runId' => 'run1',
+            'hypothesisId' => 'B',
+            'location' => 'VideoController.php:285',
+            'message' => 'Before putFileAs call',
+            'data' => [
+                'video_name' => $videoName,
+                'video_path' => $videoPath,
+                'directory' => 'videos',
+                'file_exists' => file_exists($videoFile->getRealPath()),
+                'file_readable' => is_readable($videoFile->getRealPath()),
+            ],
+            'timestamp' => time() * 1000
+        ]) . "\n";
+        @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        // #endregion
+
         // Try putFileAs first
         $uploadedPath = Storage::disk('s3')->putFileAs(
             'videos',
             $videoFile,
             $videoName
         );
+
+        // #region agent log
+        $logEntry = json_encode([
+            'sessionId' => 'debug-session',
+            'runId' => 'run1',
+            'hypothesisId' => 'B',
+            'location' => 'VideoController.php:295',
+            'message' => 'After putFileAs call',
+            'data' => [
+                'result' => $uploadedPath,
+                'result_type' => gettype($uploadedPath),
+                'is_false' => ($uploadedPath === false),
+                'is_empty' => empty($uploadedPath),
+                'is_string' => is_string($uploadedPath),
+                'result_length' => is_string($uploadedPath) ? strlen($uploadedPath) : 0,
+            ],
+            'timestamp' => time() * 1000
+        ]) . "\n";
+        @file_put_contents($logFile, $logEntry, FILE_APPEND);
+        // #endregion
 
         Log::info('putFileAs result', [
             'result' => $uploadedPath,
@@ -255,13 +430,99 @@ class VideoController extends Controller
         if (!$uploadedPath || $uploadedPath === false) {
             Log::warning('putFileAs returned false, trying fallback method with put() and file contents');
             
+            // #region agent log
+            $logEntry = json_encode([
+                'sessionId' => 'debug-session',
+                'runId' => 'run1',
+                'hypothesisId' => 'C',
+                'location' => 'VideoController.php:310',
+                'message' => 'Entering fallback method',
+                'data' => [
+                    'file_size_bytes' => $videoFile->getSize(),
+                    'file_size_mb' => round($videoFile->getSize() / (1024 * 1024), 2),
+                    'memory_limit' => ini_get('memory_limit'),
+                    'memory_usage' => memory_get_usage(true),
+                ],
+                'timestamp' => time() * 1000
+            ]) . "\n";
+            @file_put_contents($logFile, $logEntry, FILE_APPEND);
+            // #endregion
+            
             try {
+                // #region agent log
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'C',
+                    'location' => 'VideoController.php:325',
+                    'message' => 'Before file_get_contents',
+                    'data' => [
+                        'real_path' => $videoFile->getRealPath(),
+                        'file_exists' => file_exists($videoFile->getRealPath()),
+                    ],
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                // #endregion
+
                 $fileContents = file_get_contents($videoFile->getRealPath());
+                
+                // #region agent log
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'C',
+                    'location' => 'VideoController.php:335',
+                    'message' => 'After file_get_contents',
+                    'data' => [
+                        'read_success' => ($fileContents !== false),
+                        'content_length' => $fileContents !== false ? strlen($fileContents) : 0,
+                        'memory_usage_after' => memory_get_usage(true),
+                    ],
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                // #endregion
+
                 if ($fileContents === false) {
                     throw new \Exception('Could not read video file: ' . $videoFile->getRealPath());
                 }
                 
+                // #region agent log
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'E',
+                    'location' => 'VideoController.php:350',
+                    'message' => 'Before Storage::put() call',
+                    'data' => [
+                        'video_path' => $videoPath,
+                        'content_size' => strlen($fileContents),
+                    ],
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                // #endregion
+
                 $uploadedPath = Storage::disk('s3')->put($videoPath, $fileContents, 'private');
+                
+                // #region agent log
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'E',
+                    'location' => 'VideoController.php:360',
+                    'message' => 'After Storage::put() call',
+                    'data' => [
+                        'result' => $uploadedPath,
+                        'result_type' => gettype($uploadedPath),
+                        'is_false' => ($uploadedPath === false),
+                        'is_empty' => empty($uploadedPath),
+                    ],
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                // #endregion
                 
                 if (!$uploadedPath || $uploadedPath === false) {
                     throw new \Exception('Fallback put() method also returned false');
@@ -269,6 +530,24 @@ class VideoController extends Controller
                 
                 Log::info('Fallback put() method succeeded', ['path' => $uploadedPath]);
             } catch (\Exception $fallbackException) {
+                // #region agent log
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'E',
+                    'location' => 'VideoController.php:375',
+                    'message' => 'Fallback exception caught',
+                    'data' => [
+                        'error' => $fallbackException->getMessage(),
+                        'file' => $fallbackException->getFile(),
+                        'line' => $fallbackException->getLine(),
+                        'trace' => substr($fallbackException->getTraceAsString(), 0, 500),
+                    ],
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                // #endregion
+
                 Log::error('Fallback upload method failed', [
                     'error' => $fallbackException->getMessage(),
                     'file' => $fallbackException->getFile(),
