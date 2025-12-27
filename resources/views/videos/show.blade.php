@@ -192,12 +192,42 @@
                                                     }
                                                 }
                                             }
+                                            
+                                            // Detect video MIME type based on file extension
+                                            $videoType = 'video/mp4'; // default
+                                            if (!empty($videoPath)) {
+                                                $extension = strtolower(pathinfo($videoPath, PATHINFO_EXTENSION));
+                                                switch ($extension) {
+                                                    case 'webm':
+                                                        $videoType = 'video/webm';
+                                                        break;
+                                                    case 'ogg':
+                                                    case 'ogv':
+                                                        $videoType = 'video/ogg';
+                                                        break;
+                                                    case 'mov':
+                                                        $videoType = 'video/quicktime';
+                                                        break;
+                                                    case 'avi':
+                                                        $videoType = 'video/x-msvideo';
+                                                        break;
+                                                    case 'wmv':
+                                                        $videoType = 'video/x-ms-wmv';
+                                                        break;
+                                                    case 'mp4':
+                                                    case 'm4v':
+                                                    default:
+                                                        $videoType = 'video/mp4';
+                                                        break;
+                                                }
+                                            }
                                         } catch (\Exception $e) {
                                             \Log::warning('Error generating video/thumbnail URLs', [
                                                 'error' => $e->getMessage(),
                                                 'video_path' => $video->video_path ?? 'null',
                                                 'thumbnail' => $video->thumbnail ?? 'null'
                                             ]);
+                                            $videoType = 'video/mp4'; // fallback
                                         }
                                     @endphp
                                     
@@ -207,7 +237,7 @@
                                             class="w-full h-full"
                                             @if($thumbnailUrl) poster="{{ $thumbnailUrl }}" @endif
                                         >
-                                            <source src="{{ $videoUrl }}" type="video/mp4">
+                                            <source src="{{ $videoUrl }}" type="{{ $videoType }}">
                                             Your browser does not support the video tag.
                                         </video>
                                     @else
