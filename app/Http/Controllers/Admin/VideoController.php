@@ -468,6 +468,18 @@ class VideoController extends Controller
                 // Use S3 client directly with streaming for large files
                 // Create S3 client directly using AWS SDK
                 $s3Config = config('filesystems.disks.s3');
+                
+                // Validate S3 configuration
+                if (empty($s3Config['bucket'])) {
+                    throw new \Exception('S3 bucket is not configured. Please check your .env file (AWS_BUCKET).');
+                }
+                if (empty($s3Config['key']) || empty($s3Config['secret'])) {
+                    throw new \Exception('S3 credentials are not configured. Please check your .env file (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY).');
+                }
+                if (empty($s3Config['region'])) {
+                    throw new \Exception('S3 region is not configured. Please check your .env file (AWS_DEFAULT_REGION).');
+                }
+                
                 $s3Client = new S3Client([
                     'version' => 'latest',
                     'region' => $s3Config['region'],
@@ -491,6 +503,7 @@ class VideoController extends Controller
                         'real_path' => $videoFile->getRealPath(),
                         'file_exists' => file_exists($videoFile->getRealPath()),
                         'file_size' => $videoFile->getSize(),
+                        'bucket' => $bucket,
                     ],
                     'timestamp' => time() * 1000
                 ]) . "\n";
@@ -728,6 +741,18 @@ class VideoController extends Controller
     {
         // Create S3 client directly using AWS SDK
         $s3Config = config('filesystems.disks.s3');
+        
+        // Validate S3 configuration
+        if (empty($s3Config['bucket'])) {
+            throw new \Exception('S3 bucket is not configured. Please check your .env file (AWS_BUCKET).');
+        }
+        if (empty($s3Config['key']) || empty($s3Config['secret'])) {
+            throw new \Exception('S3 credentials are not configured. Please check your .env file (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY).');
+        }
+        if (empty($s3Config['region'])) {
+            throw new \Exception('S3 region is not configured. Please check your .env file (AWS_DEFAULT_REGION).');
+        }
+        
         $s3Client = new S3Client([
             'version' => 'latest',
             'region' => $s3Config['region'],
