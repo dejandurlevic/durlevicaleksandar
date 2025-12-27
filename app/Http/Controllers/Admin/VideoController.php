@@ -153,13 +153,67 @@ class VideoController extends Controller
      */
     public function store(Request $request)
 {
-
-    dd([
-        'files' => $request->allFiles(),
-        'has_video' => $request->hasFile('video'),
-        'file_error' => $request->file('video')?->getError(),
-        'file_error_message' => $request->file('video')?->getErrorMessage(),
+    // Check PHP upload configuration before validation
+    $uploadMaxSize = ini_get('upload_max_filesize');
+    $postMaxSize = ini_get('post_max_size');
+    $maxExecutionTime = ini_get('max_execution_time');
+    $memoryLimit = ini_get('memory_limit');
+    
+    Log::info('PHP upload configuration', [
+        'upload_max_filesize' => $uploadMaxSize,
+        'post_max_size' => $postMaxSize,
+        'max_execution_time' => $maxExecutionTime,
+        'memory_limit' => $memoryLimit,
     ]);
+    
+    // Check if file was actually uploaded
+    if (!$request->hasFile('video')) {
+        Log::error('No video file in request');
+        return back()
+            ->withInput()
+            ->with('error', 'No video file received. Please check PHP upload settings.');
+    }
+    
+    $videoFile = $request->file('video');
+    
+    // Check for upload errors
+    if ($videoFile->getError() !== UPLOAD_ERR_OK) {
+        $errorMessages = [
+            UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize (' . $uploadMaxSize . ')',
+            UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE directive',
+            UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+            UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload',
+        ];
+        
+        $errorCode = $videoFile->getError();
+        $errorMessage = $errorMessages[$errorCode] ?? 'Unknown upload error (code: ' . $errorCode . ')';
+        
+        Log::error('File upload error', [
+            'error_code' => $errorCode,
+            'error_message' => $errorMessage,
+            'file_name' => $videoFile->getClientOriginalName(),
+            'file_size' => $videoFile->getSize(),
+        ]);
+        
+        return back()
+            ->withInput()
+            ->with('error', 'Upload failed: ' . $errorMessage);
+    }
+    
+    // Check if file is valid
+    if (!$videoFile->isValid()) {
+        Log::error('Uploaded file is not valid', [
+            'error' => $videoFile->getErrorMessage(),
+            'file_name' => $videoFile->getClientOriginalName(),
+        ]);
+        
+        return back()
+            ->withInput()
+            ->with('error', 'Uploaded file is not valid: ' . $videoFile->getErrorMessage());
+    }
 
     $validated = $request->validate([
         'title' => 'required|string|max:255',
@@ -172,7 +226,6 @@ class VideoController extends Controller
 
     try {
         // ✅ VIDEO UPLOAD
-        $videoFile = $request->file('video');
         $videoName = Str::uuid() . '.' . $videoFile->getClientOriginalExtension();
 
         $videoPath = Storage::disk('s3')->putFileAs(
@@ -185,8 +238,12 @@ class VideoController extends Controller
             throw new \Exception('S3 video upload failed');
         }
 
-        // ❌ NEMA exists()
-        // ❌ NEMA setVisibility za video
+        // Set visibility
+        try {
+            Storage::disk('s3')->setVisibility($videoPath, 'private');
+        } catch (\Exception $e) {
+            Log::warning('Could not set video visibility', ['error' => $e->getMessage()]);
+        }
 
         // ✅ THUMBNAIL
         $thumbnailPath = null;
@@ -197,9 +254,16 @@ class VideoController extends Controller
             $thumbnailPath = Storage::disk('s3')->putFileAs(
                 'thumbnails',
                 $thumb,
-                $thumbName,
-                ['visibility' => 'public']
+                $thumbName
             );
+            
+            if ($thumbnailPath) {
+                try {
+                    Storage::disk('s3')->setVisibility($thumbnailPath, 'public');
+                } catch (\Exception $e) {
+                    Log::warning('Could not set thumbnail visibility', ['error' => $e->getMessage()]);
+                }
+            }
         }
 
         Video::create([
@@ -218,6 +282,8 @@ class VideoController extends Controller
     } catch (\Throwable $e) {
         Log::error('Video upload failed', [
             'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
             'trace' => $e->getTraceAsString(),
         ]);
 
