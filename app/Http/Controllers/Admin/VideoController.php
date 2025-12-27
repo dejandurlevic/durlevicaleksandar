@@ -251,18 +251,17 @@ class VideoController extends Controller
             'is_empty' => empty($uploadedPath),
         ]);
 
-        // If putFileAs returns false, try fallback with put() and stream
+        // If putFileAs returns false, try fallback with put() and file contents
         if (!$uploadedPath || $uploadedPath === false) {
-            Log::warning('putFileAs returned false, trying fallback method with put() and stream');
+            Log::warning('putFileAs returned false, trying fallback method with put() and file contents');
             
             try {
-                $fileStream = fopen($videoFile->getRealPath(), 'rb');
-                if ($fileStream === false) {
-                    throw new \Exception('Could not open video file for reading: ' . $videoFile->getRealPath());
+                $fileContents = file_get_contents($videoFile->getRealPath());
+                if ($fileContents === false) {
+                    throw new \Exception('Could not read video file: ' . $videoFile->getRealPath());
                 }
                 
-                $uploadedPath = Storage::disk('s3')->put($videoPath, $fileStream, 'private');
-                fclose($fileStream);
+                $uploadedPath = Storage::disk('s3')->put($videoPath, $fileContents, 'private');
                 
                 if (!$uploadedPath || $uploadedPath === false) {
                     throw new \Exception('Fallback put() method also returned false');
@@ -323,10 +322,11 @@ class VideoController extends Controller
             if (!$uploadedThumb || $uploadedThumb === false) {
                 Log::warning('Thumbnail putFileAs returned false, trying fallback');
                 try {
-                    $thumbStream = fopen($thumb->getRealPath(), 'rb');
-                    if ($thumbStream !== false) {
-                        $uploadedThumb = Storage::disk('s3')->put($thumbPath, $thumbStream, 'public');
-                        fclose($thumbStream);
+                    $thumbContents = file_get_contents($thumb->getRealPath());
+                    if ($thumbContents !== false) {
+                        $uploadedThumb = Storage::disk('s3')->put($thumbPath, $thumbContents, 'public');
+                    } else {
+                        Log::warning('Could not read thumbnail file', ['path' => $thumb->getRealPath()]);
                     }
                 } catch (\Exception $e) {
                     Log::warning('Thumbnail fallback failed', ['error' => $e->getMessage()]);
