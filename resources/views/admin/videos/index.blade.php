@@ -360,7 +360,7 @@
                     </svg>
                     <p class="text-red-600 font-medium">Failed to load video preview</p>
                 </div>
-                <video id="previewVideo" class="hidden w-full rounded-lg" controls style="max-height: 70vh;">
+                <video id="previewVideo" class="hidden w-full rounded-lg" controls controlsList="nodownload" style="max-height: 70vh;">
                     Your browser does not support the video tag.
                 </video>
             </div>
