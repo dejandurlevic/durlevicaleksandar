@@ -87,5 +87,31 @@ class SubscriptionController extends Controller
         return redirect()->route('admin.subscriptions.index')
             ->with('success', 'Subscription status updated successfully.');
     }
+
+    /**
+     * Delete a user.
+     */
+    public function destroy(User $user)
+    {
+        try {
+            // Prevent deleting admin users
+            if ($user->is_admin) {
+                return redirect()->route('admin.subscriptions.index')
+                    ->with('error', 'Cannot delete admin users.');
+            }
+
+            // Delete user's subscriptions
+            Subscription::where('user_id', $user->id)->delete();
+
+            // Delete the user
+            $user->delete();
+
+            return redirect()->route('admin.subscriptions.index')
+                ->with('success', 'User deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.subscriptions.index')
+                ->with('error', 'Failed to delete user: ' . $e->getMessage());
+        }
+    }
 }
 
