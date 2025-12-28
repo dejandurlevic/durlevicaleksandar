@@ -23,21 +23,22 @@ class VideoController extends Controller
                 'total_videos_in_db' => Video::count(),
             ]);
             
-            // Use with() for eager loading with null handling
-            $videos = Video::with(['category' => function($query) {
-                // This ensures we can handle null categories gracefully
-            }])
-                ->latest('created_at')
+            // Use leftJoin to safely handle missing categories
+            $videos = Video::leftJoin('categories', 'videos.category_id', '=', 'categories.id')
+                ->select('videos.*', 'categories.name as category_name')
+                ->latest('videos.created_at')
                 ->paginate(15);
             
-            // Transform to add category_name and ensure created_at is Carbon
+            // Transform to ensure created_at is Carbon and handle category_name
             $videos->getCollection()->transform(function ($video) {
                 try {
-                    $video->category_name = $video->category ? $video->category->name : 'No Category';
+                    // Ensure category_name is set (from join or fallback)
+                    if (empty($video->category_name)) {
+                        $video->category_name = 'No Category';
+                    }
                 } catch (\Exception $e) {
-                    Log::warning('Error accessing category for video', [
+                    Log::warning('Error processing category_name for video', [
                         'video_id' => $video->id,
-                        'category_id' => $video->category_id,
                         'error' => $e->getMessage()
                     ]);
                     $video->category_name = 'No Category';
@@ -75,10 +76,10 @@ class VideoController extends Controller
             
             // Fallback: try without category relation
             try {
-                $videos = Video::latest()->paginate(15);
+                $videos = Video::latest('created_at')->paginate(15);
                 $videos->getCollection()->transform(function ($video) {
                     try {
-                        $video->category_name = $video->category ? $video->category->name : 'No Category';
+                        $video->category_name = 'No Category';
                     } catch (\Exception $e) {
                         $video->category_name = 'No Category';
                     }
@@ -742,6 +743,39 @@ class VideoController extends Controller
             ->with('error', 'Upload failed: ' . $e->getMessage());
     }
 }
+
+    /**
+     * Show the form for editing the specified video.
+     */
+    public function edit(Video $video)
+    {
+        $categories = Category::all();
+        return view('admin.videos.edit', compact('video', 'categories'));
+    }
+
+    /**
+     * Update the specified video in storage.
+     */
+    public function update(Request $request, Video $video)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category_id' => 'required|exists:categories,id',
+            'is_premium' => 'boolean',
+        ]);
+
+        $video->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'category_id' => (int) $validated['category_id'],
+            'is_premium' => $request->boolean('is_premium'),
+        ]);
+
+        return redirect()
+            ->route('admin.videos.index')
+            ->with('success', 'Video updated successfully');
+    }
 
     /**
      * Remove the specified video.
