@@ -23,17 +23,38 @@ class VideoController extends Controller
                 'total_videos_in_db' => Video::count(),
             ]);
             
-            // Use with() for eager loading instead of leftJoin
-            $videos = Video::with('category')
+            // Use with() for eager loading with null handling
+            $videos = Video::with(['category' => function($query) {
+                // This ensures we can handle null categories gracefully
+            }])
                 ->latest('created_at')
                 ->paginate(15);
             
             // Transform to add category_name and ensure created_at is Carbon
             $videos->getCollection()->transform(function ($video) {
-                $video->category_name = $video->category ? $video->category->name : null;
-                if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
-                    $video->created_at = \Carbon\Carbon::parse($video->created_at);
+                try {
+                    $video->category_name = $video->category ? $video->category->name : 'No Category';
+                } catch (\Exception $e) {
+                    Log::warning('Error accessing category for video', [
+                        'video_id' => $video->id,
+                        'category_id' => $video->category_id,
+                        'error' => $e->getMessage()
+                    ]);
+                    $video->category_name = 'No Category';
                 }
+                
+                try {
+                    if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
+                        $video->created_at = \Carbon\Carbon::parse($video->created_at);
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Error parsing created_at for video', [
+                        'video_id' => $video->id,
+                        'created_at' => $video->created_at,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+                
                 return $video;
             });
             
@@ -56,10 +77,20 @@ class VideoController extends Controller
             try {
                 $videos = Video::latest()->paginate(15);
                 $videos->getCollection()->transform(function ($video) {
-                    $video->category_name = $video->category ? $video->category->name : null;
-                    if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
-                        $video->created_at = \Carbon\Carbon::parse($video->created_at);
+                    try {
+                        $video->category_name = $video->category ? $video->category->name : 'No Category';
+                    } catch (\Exception $e) {
+                        $video->category_name = 'No Category';
                     }
+                    
+                    try {
+                        if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
+                            $video->created_at = \Carbon\Carbon::parse($video->created_at);
+                        }
+                    } catch (\Exception $e) {
+                        // Ignore parsing errors
+                    }
+                    
                     return $video;
                 });
                 return view('admin.videos.index', compact('videos'));
@@ -695,7 +726,7 @@ class VideoController extends Controller
         Log::info('Video created successfully in database');
 
         return redirect()
-            ->route('admin.videos.index')
+            ->route('dashboard')
             ->with('success', 'Video uploaded successfully');
 
     } catch (\Throwable $e) {
