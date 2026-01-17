@@ -318,7 +318,11 @@
                                         {{ $video->title }}
                                     </h3>
                                     <p class="text-sm text-gray-500">
-                                        {{ $video->category && $video->category->name ? $video->category->name : ($video->category_name ?? 'Uncategorized') }}
+                                        @if($video->category && isset($video->category->name))
+                                            {{ $video->category->name }}
+                                        @else
+                                            Uncategorized
+                                        @endif
                                     </p>
                                 </a>
                             @endforeach

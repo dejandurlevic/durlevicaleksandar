@@ -8,14 +8,15 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display the dashboard.
-     */
+  
     public function index()
     {
-        $user = Auth::user();
 
-        console_log($user);
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        $user = Auth::user();
         
         // Get subscription status
         $subscriptionActive = $user->subscription_active;
@@ -26,10 +27,22 @@ class DashboardController extends Controller
         $premiumVideos = Video::where('is_premium', true)->count();
         
         // Get recommended videos (latest 6 videos)
-        $recommendedVideos = Video::with('category')
-            ->latest()
-            ->take(6)
-            ->get();
+        try {
+            $recommendedVideos = Video::with('category')
+                ->latest()
+                ->take(6)
+                ->get()
+                ->map(function ($video) {
+                    // Ensure category is safely accessible
+                    if (!$video->category) {
+                        $video->category = null;
+                    }
+                    return $video;
+                });
+        } catch (\Exception $e) {
+            // Fallback if there's an error
+            $recommendedVideos = collect([]);
+        }
         
         return view('dashboard', compact(
             'user',
