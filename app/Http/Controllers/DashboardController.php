@@ -14,26 +14,30 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+
+        console_log($user);
         
         // Get subscription status
         $subscriptionActive = $user->subscription_active;
         $subscriptionExpiresAt = $user->subscription_expires_at;
         
         // Get video counts
-    /*    $totalVideos = Video::count();
+        $totalVideos = Video::count();
         $premiumVideos = Video::where('is_premium', true)->count();
         
         // Get recommended videos (latest 6 videos)
         $recommendedVideos = Video::with('category')
             ->latest()
             ->take(6)
-            ->get();*/
+            ->get();
         
         return view('dashboard', compact(
             'user',
             'subscriptionActive',
             'subscriptionExpiresAt',
             'totalVideos',
+            'premiumVideos',
+            'recommendedVideos'
         ));
     }
 }
