@@ -27,8 +27,15 @@ class VideoController extends Controller
         // Get category filter from request
         $categoryId = request()->query('category');
         
-        // Get all categories for filter dropdown
-        $categories = Category::withCount('videos')->orderBy('name')->get();
+        // Get all categories for filter dropdown, sorted by number in name (Trening 1, Trening 2, etc.)
+        $categories = Category::withCount('videos')->get()->sortBy(function($category) {
+            // Extract number from category name (e.g., "Trening 1" -> 1, "Trening 2" -> 2)
+            if (preg_match('/(\d+)/', $category->name, $matches)) {
+                return (int)$matches[1];
+            }
+            // If no number found, put at the end
+            return 9999;
+        })->values();
         
         // Get selected category if filtering
         $selectedCategory = $categoryId ? Category::find($categoryId) : null;

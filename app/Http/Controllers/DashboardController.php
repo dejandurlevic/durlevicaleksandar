@@ -3,19 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Video;
+use App\Models\Inquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-  
+    /**
+     * Display the dashboard.
+     */
     public function index()
     {
-
-        if (!Auth::check()) {
-            return redirect()->route('login');
-        }
-        
         $user = Auth::user();
         
         // Get subscription status
@@ -27,21 +25,15 @@ class DashboardController extends Controller
         $premiumVideos = Video::where('is_premium', true)->count();
         
         // Get recommended videos (latest 6 videos)
-        try {
-            $recommendedVideos = Video::with('category')
-                ->latest()
-                ->take(6)
-                ->get()
-                ->map(function ($video) {
-                    // Ensure category is safely accessible
-                    if (!$video->category) {
-                        $video->category = null;
-                    }
-                    return $video;
-                });
-        } catch (\Exception $e) {
-            // Fallback if there's an error
-            $recommendedVideos = collect([]);
+        $recommendedVideos = Video::with('category')
+            ->latest()
+            ->take(6)
+            ->get();
+        
+        // Get pending inquiries count for admin
+        $pendingInquiriesCount = 0;
+        if ($user->is_admin) {
+            $pendingInquiriesCount = Inquiry::where('approved', false)->count();
         }
         
         return view('dashboard', compact(
@@ -50,7 +42,8 @@ class DashboardController extends Controller
             'subscriptionExpiresAt',
             'totalVideos',
             'premiumVideos',
-            'recommendedVideos'
+            'recommendedVideos',
+            'pendingInquiriesCount'
         ));
     }
 }

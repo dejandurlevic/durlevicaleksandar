@@ -51,6 +51,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/videos/debug', [\App\Http\Controllers\Admin\VideoController::class, 'debug'])->name('videos.debug');
         Route::get('/videos/create', [\App\Http\Controllers\Admin\VideoController::class, 'create'])->name('videos.create');
         Route::post('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'store'])->name('videos.store');
+        Route::get('/videos/{video}/edit', [\App\Http\Controllers\Admin\VideoController::class, 'edit'])->name('videos.edit');
+        Route::put('/videos/{video}', [\App\Http\Controllers\Admin\VideoController::class, 'update'])->name('videos.update');
         Route::get('/videos/{video}/preview', [\App\Http\Controllers\Admin\VideoController::class, 'preview'])->name('videos.preview');
         Route::delete('/videos/{video}', [\App\Http\Controllers\Admin\VideoController::class, 'destroy'])->name('videos.destroy');
         
@@ -66,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Subscriptions Management
         Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::post('/subscriptions/{user}/update-status', [SubscriptionController::class, 'updateStatus'])->name('subscriptions.update-status');
+        Route::delete('/subscriptions/{user}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
         
         // Payments Management
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
