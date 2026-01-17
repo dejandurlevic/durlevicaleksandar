@@ -61,10 +61,6 @@
                         <a href="{{ route('login') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
                             Login
                         </a>
-
-                        <a href="{{ route('register') }}" class="px-6 py-2.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-                            Register
-                        </a>
                     @endauth
                 </div>
             </div>
@@ -79,26 +75,26 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <!-- Left: Content -->
                 <div class="animate-fade-in-up">
-                    <div class="inline-block px-4 py-1.5 bg-gray-100 rounded-full text-sm font-semibold text-gray-700 mb-8 animate-fade-in-up animate-delay-100">
-                        Premium Fitness Training
+                    <div class="inline-block px-4 py-1.5 bg-gradient-to-r from-pink-100 to-rose-100 rounded-full text-sm font-semibold text-pink-700 mb-8 animate-fade-in-up animate-delay-100">
+                        💪 Тренинг за девојке и жене
                     </div>
                     <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight text-gray-900 animate-fade-in-up animate-delay-200">
                         Трансформишите своје тело.<br>
-                        <span class="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                        <span class="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">
                         Тренирајте паметније.
                         </span><br>
-                        <span class="bg-gradient-to-r from-gray-700 to-gray-500 bg-clip-text text-transparent">
+                        <span class="bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent">
                         Осећајте се јаче.
                         </span>
                     </h1>
                     <p class="text-xl text-gray-600 max-w-2xl mb-10 leading-relaxed animate-fade-in-up animate-delay-300">
-                        Персонализовани програми вежбања, видео библиотека тренинга, праћење напретка и директан приступ вашем тренеру — све на једној платформи.
+                        Специјализовани програми вежбања за девојке и жене, видео библиотека тренинга за глутеус и цело тело, праћење напретка и директан приступ вашем тренеру — све на једној платформи.
                     </p>
                     <div class="flex flex-wrap gap-4 animate-fade-in-up animate-delay-400">
-                        <a href="#pricing" class="px-8 py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                        <a href="#pricing" class="px-8 py-4 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
                             Start Training
                         </a>
-                        <a href="#services" class="px-8 py-4 bg-white border-2 border-gray-300 text-gray-900 rounded-xl font-bold text-lg hover:border-gray-900 hover:shadow-xl transition-all duration-300">
+                        <a href="#services" class="px-8 py-4 bg-white border-2 border-pink-300 text-gray-900 rounded-xl font-bold text-lg hover:border-pink-600 hover:shadow-xl transition-all duration-300">
                             Learn More
                         </a>
                     </div>
@@ -280,6 +276,9 @@
                         <div class="mb-6">
                             <span class="text-5xl font-extrabold text-gray-900">€35</span>
                             <span class="text-gray-600 text-lg">/month</span>
+                            <div class="mt-2 text-sm text-gray-500">
+                                ≈ 4.100 RSD / месец
+                            </div>
                         </div>
                     </div>
                     <ul class="space-y-4 mb-8 flex-grow">
@@ -302,13 +301,13 @@
                             <span class="text-gray-700 font-medium">Директни chat са тренером</span>
                         </li>
                     </ul>
-                    <button type="button" onclick="showPopup('Basic Plan')" class="block w-full bg-gray-100 text-gray-900 py-4 rounded-xl font-bold text-center hover:bg-gray-200 transition-colors duration-200">
+                    <a href="{{ route('register') }}?plan=Планови оброка" class="block w-full bg-gradient-to-r from-pink-100 to-rose-100 text-gray-900 py-4 rounded-xl font-bold text-center hover:from-pink-200 hover:to-rose-200 transition-colors duration-200">
                         Choose Plan
-                    </button>
+                    </a>
                 </div>
 
                 <!-- Standard Plan - Most Popular -->
-                <div class="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl shadow-2xl p-8 border-4 border-gray-700 transform scale-105 z-10 flex flex-col">
+                <div class="relative bg-gradient-to-br from-pink-600 to-rose-600 rounded-3xl shadow-2xl p-8 border-4 border-pink-400 transform scale-105 z-10 flex flex-col">
                     <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
                         <span class="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">MOST POPULAR</span>
                     </div>
@@ -318,6 +317,9 @@
                         <div class="mb-6">
                             <span class="text-5xl font-extrabold">€49</span>
                             <span class="text-gray-300 text-lg">/month</span>
+                            <div class="mt-2 text-sm text-gray-300">
+                                ≈ 5.740 RSD / месец
+                            </div>
                         </div>
                     </div>
                     <ul class="space-y-4 mb-8 flex-grow text-white">
@@ -346,9 +348,9 @@
                             <span class="font-medium">Progress Tracking</span>
                         </li>
                     </ul>
-                    <button type="button" onclick="showPopup('Standard Plan')" class="block w-full bg-white text-gray-900 py-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors duration-200 shadow-lg">
+                    <a href="{{ route('register') }}?plan=Видео снимци за тренинг и планови оброка" class="block w-full bg-white text-gray-900 py-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors duration-200 shadow-lg">
                         Choose Plan
-                    </button>
+                    </a>
                 </div>
 
                 <!-- Premium Plan -->
@@ -359,6 +361,9 @@
                         <div class="mb-6">
                             <span class="text-5xl font-extrabold text-gray-900">€39</span>
                             <span class="text-gray-600 text-lg">/month</span>
+                            <div class="mt-2 text-sm text-gray-500">
+                                ≈ 4.570 RSD / месец
+                            </div>
                         </div>
                     </div>
                     <ul class="space-y-4 mb-8 flex-grow">
@@ -382,9 +387,9 @@
                             <span class="text-gray-700 font-medium">Email Support</span>
                         </li>
                     </ul>
-                    <button type="button" onclick="showPopup('Premium Plan')" class="block w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white py-4 rounded-xl font-bold text-center hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+                    <a href="{{ route('register') }}?plan=Training Videos" class="block w-full bg-gradient-to-r from-pink-600 to-rose-600 text-white py-4 rounded-xl font-bold text-center hover:shadow-lg transition-all duration-200 transform hover:scale-105">
                         Choose Plan
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

@@ -46,8 +46,8 @@ class VideoController extends Controller
             $query->where('is_premium', false);
         }
         
-        // Order by oldest first (first uploaded = first shown)
-        $videos = $query->oldest()->paginate(12);
+        // Order by ID ascending (first uploaded = first shown, consistent order)
+        $videos = $query->orderBy('id', 'asc')->paginate(12);
         
         return view('videos.index', compact('videos', 'hasSubscription', 'categories', 'selectedCategory'));
     }

@@ -24,8 +24,9 @@ class DashboardController extends Controller
         $premiumVideos = Video::where('is_premium', true)->count();
         
         // Get recommended videos (latest 6 videos)
+        // Use with('category') but handle null categories gracefully
         $recommendedVideos = Video::with('category')
-            ->latest()
+            ->orderBy('id', 'desc')
             ->take(6)
             ->get();
         

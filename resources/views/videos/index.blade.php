@@ -204,7 +204,59 @@
                                     <!-- Thumbnail -->
                                     <div class="relative aspect-video bg-gray-100 overflow-hidden">
                                         @if($video->thumbnail)
-                                            <img src="{{ $video->thumbnail }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                            @php
+                                                // Generate thumbnail URL
+                                                $thumbUrl = null;
+                                                try {
+                                                    $thumbPath = $video->thumbnail;
+                                                    // Remove s3:// prefix if present
+                                                    if (strpos($thumbPath, 's3://') === 0) {
+                                                        $thumbPath = substr($thumbPath, 5);
+                                                        $s3Config = config('filesystems.disks.s3');
+                                                        $bucket = $s3Config['bucket'] ?? null;
+                                                        if ($bucket && strpos($thumbPath, $bucket . '/') === 0) {
+                                                            $thumbPath = substr($thumbPath, strlen($bucket) + 1);
+                                                        }
+                                                    }
+                                                    
+                                                    // Check if already a full URL
+                                                    if (!filter_var($thumbPath, FILTER_VALIDATE_URL)) {
+                                                        // Try to use Storage temporaryUrl first
+                                                        try {
+                                                            $thumbUrl = \Storage::disk('s3')->temporaryUrl($thumbPath, now()->addHours(24));
+                                                        } catch (\Exception $e) {
+                                                            // Fallback to manual URL construction
+                                                            $s3Config = config('filesystems.disks.s3');
+                                                            $bucket = $s3Config['bucket'] ?? null;
+                                                            $region = $s3Config['region'] ?? 'us-east-1';
+                                                            $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                            
+                                                            if ($bucket) {
+                                                                if ($usePathStyle) {
+                                                                    $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
+                                                                } else {
+                                                                    $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        $thumbUrl = $thumbPath;
+                                                    }
+                                                } catch (\Exception $e) {
+                                                    $thumbUrl = null;
+                                                }
+                                            @endphp
+                                            @if($thumbUrl)
+                                                <img src="{{ $thumbUrl }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                            @else
+                                                <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                                                    <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </div>
+                                            @endif
                                         @else
                                             <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
                                                 <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,12 +285,21 @@
                                     <!-- Video Info -->
                                     <div class="p-4 sm:p-5">
                                         <div class="flex items-center justify-between mb-2">
-                                            <a href="{{ route('videos.index') }}?category={{ $video->category->id }}" class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-semibold hover:bg-blue-100 transition-colors">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                                </svg>
-                                                {{ $video->category->name }}
-                                            </a>
+                                            @if($video->category && $video->category->id)
+                                                <a href="{{ route('videos.index') }}?category={{ $video->category->id }}" class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-semibold hover:bg-blue-100 transition-colors">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                                    </svg>
+                                                    {{ $video->category->name }}
+                                                </a>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-600 rounded-md text-xs font-semibold">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                                    </svg>
+                                                    Uncategorized
+                                                </span>
+                                            @endif
                                             @if($video->is_premium && !$hasSubscription)
                                                 <span class="text-xs text-red-600 font-semibold">🔒 Locked</span>
                                             @endif

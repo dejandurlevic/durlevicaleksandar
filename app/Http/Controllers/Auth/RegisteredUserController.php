@@ -33,18 +33,50 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'selected_plan' => ['required', 'string'],
+            'phone' => ['required', 'string', 'max:255'],
         ]);
 
+        // Create user with pending status (not active)
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'subscription_active' => false, // User is not active until approved
         ]);
 
-        event(new Registered($user));
+        // Create inquiry for approval
+        \App\Models\Inquiry::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone ?? '',
+            'plan' => $request->selected_plan,
+            'message' => $request->message ?? null,
+            'approved' => false,
+        ]);
 
-        Auth::login($user);
+        // Send email notification to admin
+        try {
+            $recipientEmail = config('mail.from.address', 'durlevicaleksandar@gmail.com');
+            \Illuminate\Support\Facades\Mail::send('emails.inquiry', [
+                'plan' => $request->selected_plan,
+                'email' => $request->email,
+                'phone' => $request->phone ?? null,
+                'name' => $request->name,
+                'inquiryMessage' => $request->message ?? null,
+            ], function ($mail) use ($request, $recipientEmail) {
+                $mail->to($recipientEmail)
+                    ->subject('New Registration Request: ' . $request->selected_plan);
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send registration inquiry email', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
+            ]);
+        }
 
-        return redirect(route('dashboard', absolute: false));
+        // Don't login user automatically - they need approval
+        return redirect(route('login'))
+            ->with('status', 'Your registration request has been submitted. You will receive an email notification once your account is approved.');
     }
 }

@@ -253,6 +253,7 @@
                                                 $thumbUrl = null;
                                                 try {
                                                     $thumbPath = $video->thumbnail;
+                                                    // Remove s3:// prefix if present
                                                     if (strpos($thumbPath, 's3://') === 0) {
                                                         $thumbPath = substr($thumbPath, 5);
                                                         $s3Config = config('filesystems.disks.s3');
@@ -262,19 +263,26 @@
                                                         }
                                                     }
                                                     
+                                                    // Check if already a full URL
                                                     if (!filter_var($thumbPath, FILTER_VALIDATE_URL)) {
-                                                        $s3Config = config('filesystems.disks.s3');
-                                                        $bucket = $s3Config['bucket'] ?? null;
-                                                        $region = $s3Config['region'] ?? 'us-east-1';
-                                                        $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
-                                                        
-                                                        if ($bucket) {
-                                                            if ($usePathStyle) {
-                                                                $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
-                                                                $thumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
-                                                            } else {
-                                                                $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
-                                                                $thumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
+                                                        // Try to use Storage temporaryUrl first
+                                                        try {
+                                                            $thumbUrl = \Storage::disk('s3')->temporaryUrl($thumbPath, now()->addHours(24));
+                                                        } catch (\Exception $e) {
+                                                            // Fallback to manual URL construction
+                                                            $s3Config = config('filesystems.disks.s3');
+                                                            $bucket = $s3Config['bucket'] ?? null;
+                                                            $region = $s3Config['region'] ?? 'us-east-1';
+                                                            $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                            
+                                                            if ($bucket) {
+                                                                if ($usePathStyle) {
+                                                                    $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
+                                                                } else {
+                                                                    $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
+                                                                }
                                                             }
                                                         }
                                                     } else {
@@ -310,7 +318,7 @@
                                         {{ $video->title }}
                                     </h3>
                                     <p class="text-sm text-gray-500">
-                                        {{ $video->category->name }}
+                                        {{ $video->category && $video->category->name ? $video->category->name : ($video->category_name ?? 'Uncategorized') }}
                                     </p>
                                 </a>
                             @endforeach
