@@ -97,7 +97,7 @@
                 <!-- Left: Content -->
                 <div class="animate-fade-in-up">
                     <div class="inline-block px-4 py-1.5 bg-gradient-to-r from-pink-100 to-rose-100 rounded-full text-sm font-semibold text-pink-700 mb-8 animate-fade-in-up animate-delay-100">
-                        💪 Тренинг за девојке и жене
+                        💪 Тренинг за девојке
                     </div>
                     <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight text-gray-900 animate-fade-in-up animate-delay-200">
                         Трансформишите своје тело.<br>
@@ -209,7 +209,7 @@
                             <div class="text-sm font-semibold text-gray-600">Years Experience</div>
                         </div>
                         <div class="text-center p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors duration-300">
-                            <div class="text-4xl font-extrabold text-gray-900 mb-2">20+</div>
+                            <div class="text-4xl font-extrabold text-gray-900 mb-2">70+</div>
                             <div class="text-sm font-semibold text-gray-600">Training Videos</div>
                         </div>
                     </div>

@@ -24,10 +24,10 @@ class DashboardController extends Controller
         $premiumVideos = Video::where('is_premium', true)->count();
         
         // Get recommended videos (latest 6 videos)
-        $recommendedVideos = Video::with('category')
+       /* $recommendedVideos = Video::with('category')
             ->latest()
             ->take(6)
-            ->get();
+            ->get();*/
         
         return view('dashboard', compact(
             'user',
@@ -35,7 +35,6 @@ class DashboardController extends Controller
             'subscriptionExpiresAt',
             'totalVideos',
             'premiumVideos',
-            'recommendedVideos'
         ));
     }
 }
