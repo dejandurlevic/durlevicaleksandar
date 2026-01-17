@@ -20,11 +20,11 @@ class DashboardController extends Controller
         $subscriptionExpiresAt = $user->subscription_expires_at;
         
         // Get video counts
-        $totalVideos = Video::count();
+    /*    $totalVideos = Video::count();
         $premiumVideos = Video::where('is_premium', true)->count();
         
         // Get recommended videos (latest 6 videos)
-       /* $recommendedVideos = Video::with('category')
+        $recommendedVideos = Video::with('category')
             ->latest()
             ->take(6)
             ->get();*/
@@ -34,7 +34,6 @@ class DashboardController extends Controller
             'subscriptionActive',
             'subscriptionExpiresAt',
             'totalVideos',
-            'premiumVideos',
         ));
     }
 }
