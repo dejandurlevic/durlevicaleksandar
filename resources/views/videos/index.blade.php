@@ -122,20 +122,20 @@
                 <div class="w-6"></div>
             </div>
 
-            <div class="p-4 sm:p-6 lg:p-8">
+            <div class="p-3 sm:p-4 md:p-6 lg:p-8">
                 <!-- Header -->
-                <div class="mb-6 lg:mb-8">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                        <div>
-                            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Video Library</h1>
-                            <p class="text-sm sm:text-base text-gray-600">Browse and watch your training videos</p>
+                <div class="mb-4 sm:mb-6 lg:mb-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4">
+                        <div class="mb-3 sm:mb-0">
+                            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Video Library</h1>
+                            <p class="text-xs sm:text-sm lg:text-base text-gray-600">Browse and watch your training videos</p>
                         </div>
                         
                         <!-- Category Filter -->
                         @if(isset($categories) && $categories->count() > 0)
-                            <div class="mt-4 sm:mt-0">
-                                <form method="GET" action="{{ route('videos.index') }}" class="flex items-center gap-2">
-                                    <select name="category" id="category-filter" onchange="this.form.submit()" class="block w-full sm:w-auto px-4 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="mt-4 sm:mt-0 w-full sm:w-auto">
+                                <form method="GET" action="{{ route('videos.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <select name="category" id="category-filter" onchange="this.form.submit()" class="block w-full sm:w-auto px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                         <option value="">All Categories</option>
                                         @foreach($categories as $category)
                                             <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
@@ -144,7 +144,7 @@
                                         @endforeach
                                     </select>
                                     @if(request('category'))
-                                        <a href="{{ route('videos.index') }}" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <a href="{{ route('videos.index') }}" class="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm text-center text-gray-600 hover:text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap">
                                             Clear
                                         </a>
                                     @endif
@@ -155,8 +155,8 @@
                     
                     <!-- Selected Category Badge -->
                     @if(isset($selectedCategory) && $selectedCategory)
-                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs sm:text-sm">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
                             <span class="font-semibold text-blue-900">Showing: {{ $selectedCategory->name }}</span>
@@ -167,13 +167,13 @@
 
                 <!-- Subscription Status Banner -->
                 @if(!$hasSubscription)
-                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 sm:p-4 mb-6 lg:mb-8 rounded-lg">
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-2.5 sm:p-3 lg:p-4 mb-4 sm:mb-6 lg:mb-8 rounded-lg">
                         <div class="flex items-start sm:items-center">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                             </svg>
                             <div class="flex-1 min-w-0">
-                                <p class="text-xs sm:text-sm text-yellow-800">
+                                <p class="text-xs sm:text-sm text-yellow-800 leading-relaxed">
                                     <strong>Ограничен приступ:</strong> You're viewing free videos only. 
                                     <a href="{{ route('home') }}#pricing" class="underline font-semibold">Subscribe now</a> to access all premium training videos.
                                 </p>
@@ -181,13 +181,13 @@
                         </div>
                     </div>
                 @else
-                    <div class="bg-green-50 border-l-4 border-green-400 p-3 sm:p-4 mb-6 lg:mb-8 rounded-lg">
+                    <div class="bg-green-50 border-l-4 border-green-400 p-2.5 sm:p-3 lg:p-4 mb-4 sm:mb-6 lg:mb-8 rounded-lg">
                         <div class="flex items-start sm:items-center">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-green-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <div class="flex-1 min-w-0">
-                                <p class="text-xs sm:text-sm text-green-800">
+                                <p class="text-xs sm:text-sm text-green-800 leading-relaxed">
                                     <strong>Premium Access:</strong> You have full access to all training videos, including premium content.
                                 </p>
                             </div>
@@ -197,10 +197,10 @@
 
                 <!-- Videos Grid -->
                 @if($videos->count() > 0)
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 lg:mb-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4 lg:gap-5 mb-4 sm:mb-6 lg:mb-8">
                         @foreach($videos as $video)
                             <a href="{{ route('videos.show', $video) }}" class="group">
-                                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+                                <div class="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 transform sm:hover:-translate-y-2">
                                     <!-- Thumbnail -->
                                     <div class="relative aspect-video bg-gray-100 overflow-hidden">
                                         @if($video->thumbnail)
@@ -249,7 +249,7 @@
                                                 }
                                             @endphp
                                             @if($thumbUrl)
-                                                <img src="{{ $thumbUrl }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                                <img src="{{ $thumbUrl }}" alt="{{ $video->title }}" class="w-full h-full object-cover sm:group-hover:scale-110 transition-transform duration-500">
                                             @else
                                                 <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
                                                     <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,15 +267,15 @@
                                         
                                         <!-- Premium Badge -->
                                         @if($video->is_premium)
-                                            <div class="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold">
+                                            <div class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-yellow-400 text-yellow-900 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-bold">
                                                 Premium
                                             </div>
                                         @endif
                                         
                                         <!-- Play Button Overlay -->
-                                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                            <div class="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                                                <svg class="w-8 h-8 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-white/90 rounded-full flex items-center justify-center">
+                                                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-gray-900 ml-0.5 sm:ml-1" fill="currentColor" viewBox="0 0 24 24">
                                                     <path d="M8 5v14l11-7z"/>
                                                 </svg>
                                             </div>
@@ -283,32 +283,32 @@
                                     </div>
                                     
                                     <!-- Video Info -->
-                                    <div class="p-4 sm:p-5">
-                                        <div class="flex items-center justify-between mb-2">
+                                    <div class="p-3 sm:p-4 lg:p-5">
+                                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                                             @if($video->category && $video->category->id)
                                                 <a href="{{ route('videos.index') }}?category={{ $video->category->id }}" class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-semibold hover:bg-blue-100 transition-colors">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                                     </svg>
-                                                    {{ $video->category->name }}
+                                                    <span class="truncate">{{ $video->category->name }}</span>
                                                 </a>
                                             @else
                                                 <span class="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-600 rounded-md text-xs font-semibold">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                                     </svg>
-                                                    Uncategorized
+                                                    <span class="truncate">Uncategorized</span>
                                                 </span>
                                             @endif
                                             @if($video->is_premium && !$hasSubscription)
-                                                <span class="text-xs text-red-600 font-semibold">🔒 Locked</span>
+                                                <span class="text-xs text-red-600 font-semibold whitespace-nowrap">🔒 Locked</span>
                                             @endif
                                         </div>
-                                        <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-2 group-hover:text-gray-600 transition-colors line-clamp-2">
+                                        <h3 class="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 sm:mb-2 group-hover:text-gray-600 transition-colors line-clamp-2">
                                             {{ $video->title }}
                                         </h3>
                                         @if($video->description)
-                                            <p class="text-xs sm:text-sm text-gray-600 line-clamp-2">
+                                            <p class="text-xs sm:text-sm text-gray-600 line-clamp-2 hidden sm:block">
                                                 {{ strlen($video->description) > 100 ? substr($video->description, 0, 100) . '...' : $video->description }}
                                             </p>
                                         @endif
@@ -319,16 +319,18 @@
                     </div>
 
                     <!-- Pagination -->
-                    <div class="mt-6 lg:mt-8">
-                        {{ $videos->links() }}
+                    <div class="mt-4 sm:mt-6 lg:mt-8 overflow-x-auto">
+                        <div class="min-w-full">
+                            {{ $videos->links() }}
+                        </div>
                     </div>
                 @else
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
-                        <svg class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8 lg:p-12 text-center">
+                        <svg class="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                         </svg>
-                        <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">No videos available</h3>
-                        <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Check back soon for new training content.</p>
+                        <h3 class="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-2">No videos available</h3>
+                        <p class="text-xs sm:text-sm lg:text-base text-gray-600 mb-4 sm:mb-6">Check back soon for new training content.</p>
                         @if(!$hasSubscription)
                             <a href="{{ route('home') }}#pricing" class="inline-block px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl font-semibold text-sm sm:text-base hover:shadow-lg transition-all duration-200">
                                 Subscribe to Access Videos
