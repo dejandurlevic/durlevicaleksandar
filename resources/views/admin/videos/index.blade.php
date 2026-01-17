@@ -284,6 +284,10 @@
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium" onclick="event.stopPropagation();">
                                                 <div class="flex items-center justify-end space-x-2 sm:space-x-3">
+                                                    <a href="{{ route('admin.videos.edit', $video) }}" 
+                                                            class="text-green-600 hover:text-green-900 font-semibold text-xs sm:text-sm">
+                                                        Edit
+                                                    </a>
                                                     <button onclick="previewVideo({{ $video->id }}, '{{ $video->title }}')" 
                                                             class="text-blue-600 hover:text-blue-900 font-semibold text-xs sm:text-sm">
                                                         Preview

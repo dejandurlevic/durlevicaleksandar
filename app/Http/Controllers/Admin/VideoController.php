@@ -721,4 +721,33 @@ class VideoController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Show the form for editing the specified video.
+     */
+    public function edit(Video $video)
+    {
+        $categories = Category::all();
+        return view('admin.videos.edit', compact('video', 'categories'));
+    }
+
+    /**
+     * Update the specified video.
+     */
+    public function update(Request $request, Video $video)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'video_path' => 'required|string',
+            'thumbnail' => 'nullable|string',
+            'is_premium' => 'boolean',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        $video->update($validated);
+
+        return redirect()->route('admin.videos.index')
+            ->with('success', 'Video updated successfully.');
+    }
 }

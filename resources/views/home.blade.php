@@ -97,7 +97,7 @@
                 <!-- Left: Content -->
                 <div class="animate-fade-in-up text-center lg:text-left">
                     <div class="inline-block px-3 sm:px-4 py-1 sm:py-1.5 bg-gradient-to-r from-pink-100 to-rose-100 rounded-full text-xs sm:text-sm font-semibold text-pink-700 mb-4 sm:mb-6 lg:mb-8 animate-fade-in-up animate-delay-100">
-                        💪 Тренинг за девојке и жене
+                        💪 Тренинг за девојке
                     </div>
                     <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight mb-4 sm:mb-6 leading-tight text-gray-900 animate-fade-in-up animate-delay-200">
                         Трансформишите своје тело.<br>
@@ -381,7 +381,7 @@
                 <!-- Premium Plan -->
                 <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-5 sm:p-6 lg:p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 sm:transform sm:hover:-translate-y-2 flex flex-col">
                     <div class="mb-6 sm:mb-8">
-                        <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Training Videos</h3>
+                        <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Видео снимци за тренинг</h3>
                         <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Ultimate fitness trening</p>
                         <div class="mb-4 sm:mb-6">
                             <span class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900">€39</span>
