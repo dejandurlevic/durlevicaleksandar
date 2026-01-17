@@ -58,13 +58,6 @@
                             Manage Videos
                         </a>
                         
-                        <a href="{{ route('admin.videos.create') }}" class="flex items-center px-3 sm:px-4 py-2 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
-                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            Create Video
-                        </a>
-                        
                         <a href="{{ route('admin.categories.index') }}" class="flex items-center px-3 sm:px-4 py-2 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
@@ -291,10 +284,6 @@
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium" onclick="event.stopPropagation();">
                                                 <div class="flex items-center justify-end space-x-2 sm:space-x-3">
-                                                    <a href="{{ route('admin.videos.edit', $video) }}" 
-                                                            class="text-green-600 hover:text-green-900 font-semibold text-xs sm:text-sm">
-                                                        Edit
-                                                    </a>
                                                     <button onclick="previewVideo({{ $video->id }}, '{{ $video->title }}')" 
                                                             class="text-blue-600 hover:text-blue-900 font-semibold text-xs sm:text-sm">
                                                         Preview
@@ -360,7 +349,7 @@
                     </svg>
                     <p class="text-red-600 font-medium">Failed to load video preview</p>
                 </div>
-                <video id="previewVideo" class="hidden w-full rounded-lg" controls controlsList="nodownload" style="max-height: 70vh;">
+                <video id="previewVideo" class="hidden w-full rounded-lg" controls style="max-height: 70vh;">
                     Your browser does not support the video tag.
                 </video>
             </div>

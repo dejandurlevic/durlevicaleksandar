@@ -125,8 +125,44 @@
             <div class="p-4 sm:p-6 lg:p-8">
                 <!-- Header -->
                 <div class="mb-6 lg:mb-8">
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Video Library</h1>
-                    <p class="text-sm sm:text-base text-gray-600">Browse and watch your training videos</p>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                        <div>
+                            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Video Library</h1>
+                            <p class="text-sm sm:text-base text-gray-600">Browse and watch your training videos</p>
+                        </div>
+                        
+                        <!-- Category Filter -->
+                        @if(isset($categories) && $categories->count() > 0)
+                            <div class="mt-4 sm:mt-0">
+                                <form method="GET" action="{{ route('videos.index') }}" class="flex items-center gap-2">
+                                    <select name="category" id="category-filter" onchange="this.form.submit()" class="block w-full sm:w-auto px-4 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">All Categories</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }} ({{ $category->videos_count }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @if(request('category'))
+                                        <a href="{{ route('videos.index') }}" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                            Clear
+                                        </a>
+                                    @endif
+                                </form>
+                            </div>
+                        @endif
+                    </div>
+                    
+                    <!-- Selected Category Badge -->
+                    @if(isset($selectedCategory) && $selectedCategory)
+                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            <span class="font-semibold text-blue-900">Showing: {{ $selectedCategory->name }}</span>
+                            <span class="text-blue-600">({{ $videos->total() }} {{ Str::plural('video', $videos->total()) }})</span>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Subscription Status Banner -->
@@ -168,59 +204,7 @@
                                     <!-- Thumbnail -->
                                     <div class="relative aspect-video bg-gray-100 overflow-hidden">
                                         @if($video->thumbnail)
-                                            @php
-                                                // Generate thumbnail URL for video library (same as show.blade.php)
-                                                $thumbUrl = null;
-                                                try {
-                                                    $thumbPath = $video->thumbnail;
-                                                    if (strpos($thumbPath, 's3://') === 0) {
-                                                        $thumbPath = substr($thumbPath, 5);
-                                                        $s3Config = config('filesystems.disks.s3');
-                                                        $bucket = $s3Config['bucket'] ?? null;
-                                                        if ($bucket && strpos($thumbPath, $bucket . '/') === 0) {
-                                                            $thumbPath = substr($thumbPath, strlen($bucket) + 1);
-                                                        }
-                                                    }
-                                                    
-                                                    if (!filter_var($thumbPath, FILTER_VALIDATE_URL)) {
-                                                        // Generate presigned URL for thumbnail (same as video)
-                                                        try {
-                                                            $thumbUrl = Storage::disk('s3')->temporaryUrl($thumbPath, now()->addMinutes(60));
-                                                        } catch (\Exception $e) {
-                                                            // Fallback: construct S3 URL manually
-                                                            $s3Config = config('filesystems.disks.s3');
-                                                            $bucket = $s3Config['bucket'] ?? null;
-                                                            $region = $s3Config['region'] ?? 'us-east-1';
-                                                            $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
-                                                            
-                                                            if ($bucket) {
-                                                                if ($usePathStyle) {
-                                                                    $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
-                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
-                                                                } else {
-                                                                    $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
-                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
-                                                                }
-                                                            } else {
-                                                                $thumbUrl = null;
-                                                            }
-                                                        }
-                                                    } else {
-                                                        $thumbUrl = $thumbPath;
-                                                    }
-                                                } catch (\Exception $e) {
-                                                    $thumbUrl = null;
-                                                }
-                                            @endphp
-                                            @if($thumbUrl)
-                                                <img src="{{ $thumbUrl }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                                            @else
-                                                <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                                                    <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                                    </svg>
-                                                </div>
-                                            @endif
+                                            <img src="{{ $video->thumbnail }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                         @else
                                             <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
                                                 <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,7 +233,12 @@
                                     <!-- Video Info -->
                                     <div class="p-4 sm:p-5">
                                         <div class="flex items-center justify-between mb-2">
-                                            <span class="text-xs font-semibold text-gray-500 uppercase">{{ $video->category->name }}</span>
+                                            <a href="{{ route('videos.index') }}?category={{ $video->category->id }}" class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-semibold hover:bg-blue-100 transition-colors">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                                </svg>
+                                                {{ $video->category->name }}
+                                            </a>
                                             @if($video->is_premium && !$hasSubscription)
                                                 <span class="text-xs text-red-600 font-semibold">🔒 Locked</span>
                                             @endif

@@ -47,23 +47,8 @@ class CategoryController extends Controller
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
-        
-        // Ensure slug is unique - if not, append number
-        $originalSlug = $validated['slug'];
-        $counter = 1;
-        while (Category::where('slug', $validated['slug'])->exists()) {
-            $validated['slug'] = $originalSlug . '-' . $counter;
-            $counter++;
-        }
 
-        $category = Category::create($validated);
-        
-        // Log for debugging
-        \Log::info('Category created', [
-            'id' => $category->id,
-            'name' => $category->name,
-            'slug' => $category->slug
-        ]);
+        Category::create($validated);
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category created successfully.');

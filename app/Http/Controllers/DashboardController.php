@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Video;
-use App\Models\Inquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,20 +29,13 @@ class DashboardController extends Controller
             ->take(6)
             ->get();
         
-        // Get pending inquiries count for admin
-        $pendingInquiriesCount = 0;
-        if ($user->is_admin) {
-            $pendingInquiriesCount = Inquiry::where('approved', false)->count();
-        }
-        
         return view('dashboard', compact(
             'user',
             'subscriptionActive',
             'subscriptionExpiresAt',
             'totalVideos',
             'premiumVideos',
-            'recommendedVideos',
-            'pendingInquiriesCount'
+            'recommendedVideos'
         ));
     }
 }

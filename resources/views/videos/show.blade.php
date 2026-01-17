@@ -234,7 +234,6 @@
                                     @if($videoUrl)
                                         <video 
                                             controls 
-                                            controlsList="nodownload"
                                             class="w-full h-full"
                                             @if($thumbnailUrl) poster="{{ $thumbnailUrl }}" @endif
                                         >

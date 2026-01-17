@@ -131,30 +131,38 @@
 
                 <!-- Categories Grid -->
                 @if($categories->count() > 0)
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                         @foreach($categories as $category)
                             <a href="{{ route('videos.index') }}?category={{ $category->id }}" class="group">
-                                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                                    <div class="p-4 sm:p-6">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg flex items-center justify-center">
-                                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                                </svg>
+                                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full flex flex-col">
+                                    <!-- Folder Icon Section -->
+                                    <div class="p-6 sm:p-8 bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center min-h-[180px]">
+                                        <div class="relative">
+                                            <!-- Folder Icon -->
+                                            <svg class="w-24 h-24 sm:w-28 sm:h-28 text-blue-500 group-hover:text-blue-600 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                                            </svg>
+                                            <!-- Video Count Badge -->
+                                            <div class="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold shadow-lg">
+                                                {{ $category->videos_count }}
                                             </div>
-                                            <span class="text-xs sm:text-sm font-semibold text-gray-500 bg-gray-100 px-2 sm:px-3 py-1 rounded-full">
-                                                {{ $category->videos_count }} {{ Str::plural('video', $category->videos_count) }}
-                                            </span>
                                         </div>
-                                        <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-gray-600 transition-colors">
+                                    </div>
+                                    
+                                    <!-- Category Info -->
+                                    <div class="p-4 sm:p-6 flex-1 flex flex-col">
+                                        <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                                             {{ $category->name }}
                                         </h3>
-                                        <p class="text-xs sm:text-sm text-gray-600 flex items-center">
-                                            View all videos
-                                            <svg class="w-3 h-3 sm:w-4 sm:h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <p class="text-xs sm:text-sm text-gray-500 mb-4">
+                                            {{ $category->videos_count }} {{ Str::plural('video', $category->videos_count) }} available
+                                        </p>
+                                        <div class="mt-auto flex items-center text-sm font-medium text-blue-600 group-hover:text-blue-700">
+                                            <span>View videos</span>
+                                            <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                             </svg>
-                                        </p>
+                                        </div>
                                     </div>
                                 </div>
                             </a>

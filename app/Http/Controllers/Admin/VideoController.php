@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Aws\S3\S3Client;
 
 class VideoController extends Controller
 {
@@ -19,51 +18,68 @@ class VideoController extends Controller
     public function index()
     {
         try {
+            // Add debugging to identify the issue
             Log::info('Admin videos index - Fetching videos', [
                 'total_videos_in_db' => Video::count(),
             ]);
             
-            // Use leftJoin to safely handle missing categories
-            $videos = Video::leftJoin('categories', 'videos.category_id', '=', 'categories.id')
-                ->select('videos.*', 'categories.name as category_name')
-                ->latest('videos.created_at')
-                ->paginate(15);
-            
-            // Transform to ensure created_at is Carbon and handle category_name
-            $videos->getCollection()->transform(function ($video) {
-                try {
-                    // Ensure category_name is set (from join or fallback)
-                    if (empty($video->category_name)) {
-                        $video->category_name = 'No Category';
-                    }
-                } catch (\Exception $e) {
-                    Log::warning('Error processing category_name for video', [
-                        'video_id' => $video->id,
-                        'error' => $e->getMessage()
-                    ]);
-                    $video->category_name = 'No Category';
-                }
-                
-                try {
+            // Use leftJoin to handle missing categories gracefully
+            // Explicitly select all videos columns to avoid conflicts with categories timestamps
+            // Wrap in try-catch to handle any SQL errors with the join
+            try {
+                $videos = Video::leftJoin('categories', 'videos.category_id', '=', 'categories.id')
+                    ->select(
+                        'videos.id',
+                        'videos.title',
+                        'videos.description',
+                        'videos.video_path',
+                        'videos.thumbnail',
+                        'videos.is_premium',
+                        'videos.category_id',
+                        'videos.created_at',
+                        'videos.updated_at',
+                        'categories.name as category_name'
+                    )
+                    ->latest('videos.created_at')
+                    ->paginate(15);
+                    
+                // Ensure created_at is a Carbon instance for all videos
+                $videos->getCollection()->transform(function ($video) {
                     if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
                         $video->created_at = \Carbon\Carbon::parse($video->created_at);
                     }
-                } catch (\Exception $e) {
-                    Log::warning('Error parsing created_at for video', [
-                        'video_id' => $video->id,
-                        'created_at' => $video->created_at,
-                        'error' => $e->getMessage()
-                    ]);
-                }
+                    return $video;
+                });
+            } catch (\Exception $joinError) {
+                // If leftJoin fails, try without join (fallback)
+                Log::warning('leftJoin failed, falling back to simple query', [
+                    'error' => $joinError->getMessage(),
+                    'trace' => $joinError->getTraceAsString()
+                ]);
                 
-                return $video;
-            });
+                $videos = Video::latest()->paginate(15);
+                // Manually add category_name as null for all videos
+                $videos->getCollection()->transform(function ($video) {
+                    $video->category_name = $video->category ? $video->category->name : null;
+                    // Ensure created_at is a Carbon instance
+                    if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
+                        $video->created_at = \Carbon\Carbon::parse($video->created_at);
+                    }
+                    return $video;
+                });
+            }
             
-            Log::info('Admin videos index - Videos fetched', [
-                'paginated_count' => $videos->count(),
-                'total_pages' => $videos->lastPage(),
-                'current_page' => $videos->currentPage(),
-            ]);
+            // Safer logging - don't map if it might cause issues
+            try {
+                Log::info('Admin videos index - Videos fetched', [
+                    'paginated_count' => $videos->count(),
+                    'total_pages' => $videos->lastPage(),
+                    'current_page' => $videos->currentPage(),
+                ]);
+            } catch (\Exception $logError) {
+                // Ignore logging errors
+                Log::warning('Could not log video details', ['error' => $logError->getMessage()]);
+            }
             
             return view('admin.videos.index', compact('videos'));
         } catch (\Exception $e) {
@@ -76,30 +92,23 @@ class VideoController extends Controller
             
             // Fallback: try without category relation
             try {
-                $videos = Video::latest('created_at')->paginate(15);
+                $videos = Video::latest()->paginate(15);
+                // Manually add category_name as null
                 $videos->getCollection()->transform(function ($video) {
-                    try {
-                        $video->category_name = 'No Category';
-                    } catch (\Exception $e) {
-                        $video->category_name = 'No Category';
+                    $video->category_name = $video->category ? $video->category->name : null;
+                    // Ensure created_at is a Carbon instance
+                    if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
+                        $video->created_at = \Carbon\Carbon::parse($video->created_at);
                     }
-                    
-                    try {
-                        if ($video->created_at && !($video->created_at instanceof \Carbon\Carbon)) {
-                            $video->created_at = \Carbon\Carbon::parse($video->created_at);
-                        }
-                    } catch (\Exception $e) {
-                        // Ignore parsing errors
-                    }
-                    
                     return $video;
                 });
-                return view('admin.videos.index', compact('videos'));
+                return view('admin.videos.index', compact('videos'))->with('error', 'Some videos may not display correctly.');
             } catch (\Exception $e2) {
                 Log::error('Complete failure in admin videos index', [
                     'error' => $e2->getMessage(),
                     'file' => $e2->getFile(),
                     'line' => $e2->getLine(),
+                    'trace' => $e2->getTraceAsString()
                 ]);
                 abort(500, 'Unable to load videos. Please check the logs.');
             }
@@ -315,33 +324,38 @@ class VideoController extends Controller
 
         // Test S3 connection before upload
         // #region agent log
-        $s3ConnectionTestData = ['test_result' => false, 'error' => null];
         try {
             $testFile = 'test-connection-' . time() . '.txt';
             $testResult = Storage::disk('s3')->put($testFile, 'test');
-            $s3ConnectionTestData = [
-                'test_result' => $testResult,
-                'test_result_type' => gettype($testResult),
-                'connection_success' => ($testResult !== false),
-            ];
+            $logEntry = json_encode([
+                'sessionId' => 'debug-session',
+                'runId' => 'run1',
+                'hypothesisId' => 'D',
+                'location' => 'VideoController.php:265',
+                'message' => 'S3 connection test',
+                'data' => [
+                    'test_result' => $testResult,
+                    'test_result_type' => gettype($testResult),
+                    'connection_success' => ($testResult !== false),
+                ],
+                'timestamp' => time() * 1000
+            ]) . "\n";
+            @file_put_contents($logFile, $logEntry, FILE_APPEND);
             if ($testResult) {
                 Storage::disk('s3')->delete($testFile);
             }
         } catch (\Exception $e) {
-            $s3ConnectionTestData['error'] = $e->getMessage();
+            $logEntry = json_encode([
+                'sessionId' => 'debug-session',
+                'runId' => 'run1',
+                'hypothesisId' => 'D',
+                'location' => 'VideoController.php:275',
+                'message' => 'S3 connection test exception',
+                'data' => ['error' => $e->getMessage()],
+                'timestamp' => time() * 1000
+            ]) . "\n";
+            @file_put_contents($logFile, $logEntry, FILE_APPEND);
         }
-        $logEntry = json_encode([
-            'sessionId' => 'debug-session',
-            'runId' => 'run1',
-            'hypothesisId' => 'D',
-            'location' => 'VideoController.php:265',
-            'message' => 'S3 connection test',
-            'data' => $s3ConnectionTestData,
-            'timestamp' => time() * 1000
-        ]) . "\n";
-        @file_put_contents($logFile, $logEntry, FILE_APPEND);
-        Log::info('DEBUG: S3 connection test', $s3ConnectionTestData);
-        error_log('DEBUG S3 connection test: ' . json_encode($s3ConnectionTestData));
         // #endregion
 
         // ✅ VIDEO UPLOAD
@@ -378,13 +392,8 @@ class VideoController extends Controller
         // #endregion
 
         // Try putFileAs first
-        // Temporarily enable throwing to see actual errors
-        $s3Disk = Storage::disk('s3');
-        $originalThrow = config('filesystems.disks.s3.throw', false);
-        config(['filesystems.disks.s3.throw' => true]);
-        
         try {
-            $uploadedPath = $s3Disk->putFileAs(
+            $uploadedPath = Storage::disk('s3')->putFileAs(
                 'videos',
                 $videoFile,
                 $videoName
@@ -394,13 +403,9 @@ class VideoController extends Controller
                 'error' => $putFileAsException->getMessage(),
                 'file' => $putFileAsException->getFile(),
                 'line' => $putFileAsException->getLine(),
-                'trace' => substr($putFileAsException->getTraceAsString(), 0, 1000),
+                'trace' => substr($putFileAsException->getTraceAsString(), 0, 500),
             ]);
-            error_log('DEBUG putFileAs exception: ' . $putFileAsException->getMessage());
             $uploadedPath = false;
-        } finally {
-            // Restore original setting
-            config(['filesystems.disks.s3.throw' => $originalThrow]);
         }
 
         // #region agent log
@@ -432,9 +437,9 @@ class VideoController extends Controller
             'is_empty' => empty($uploadedPath),
         ]);
 
-        // If putFileAs returns false, try fallback with streaming upload
+        // If putFileAs returns false, try fallback with put() and file contents
         if (!$uploadedPath || $uploadedPath === false) {
-            Log::warning('putFileAs returned false, trying fallback method with streaming upload');
+            Log::warning('putFileAs returned false, trying fallback method with put() and file contents');
             
             // #region agent log
             $logEntry = json_encode([
@@ -455,147 +460,98 @@ class VideoController extends Controller
             // #endregion
             
             try {
-                // Use S3 client directly with streaming for large files
-                // Create S3 client directly using AWS SDK
-                $s3Config = config('filesystems.disks.s3');
-                
-                // #region agent log
-                $logFile = base_path('.cursor/debug.log');
-                $logEntry = json_encode([
-                    'sessionId' => 'debug-session',
-                    'runId' => 'run1',
-                    'hypothesisId' => 'A',
-                    'location' => 'VideoController.php:470',
-                    'message' => 'S3 config read from config()',
-                    'data' => [
-                        'bucket' => $s3Config['bucket'] ?? 'NOT_SET',
-                        'bucket_type' => gettype($s3Config['bucket'] ?? null),
-                        'bucket_empty' => empty($s3Config['bucket'] ?? null),
-                        'bucket_is_null' => ($s3Config['bucket'] ?? null) === null,
-                        'has_region' => !empty($s3Config['region'] ?? null),
-                        'has_key' => !empty($s3Config['key'] ?? null),
-                        'has_secret' => !empty($s3Config['secret'] ?? null),
-                    ],
-                    'timestamp' => time() * 1000
-                ]) . "\n";
-                @file_put_contents($logFile, $logEntry, FILE_APPEND);
-                // #endregion
-                
-                $s3Client = new S3Client([
-                    'version' => 'latest',
-                    'region' => $s3Config['region'],
-                    'credentials' => [
-                        'key' => $s3Config['key'],
-                        'secret' => $s3Config['secret'],
-                    ],
-                    'endpoint' => $s3Config['endpoint'] ?? null,
-                    'use_path_style_endpoint' => $s3Config['use_path_style_endpoint'] ?? false,
-                ]);
-                $bucket = $s3Config['bucket'];
-                
-                // #region agent log
-                $logEntry = json_encode([
-                    'sessionId' => 'debug-session',
-                    'runId' => 'run1',
-                    'hypothesisId' => 'B',
-                    'location' => 'VideoController.php:481',
-                    'message' => 'Bucket value before putObject',
-                    'data' => [
-                        'bucket' => $bucket,
-                        'bucket_type' => gettype($bucket),
-                        'bucket_empty' => empty($bucket),
-                        'bucket_is_null' => $bucket === null,
-                        'bucket_length' => is_string($bucket) ? strlen($bucket) : 0,
-                    ],
-                    'timestamp' => time() * 1000
-                ]) . "\n";
-                @file_put_contents($logFile, $logEntry, FILE_APPEND);
-                // #endregion
-                
                 // #region agent log
                 $logEntry = json_encode([
                     'sessionId' => 'debug-session',
                     'runId' => 'run1',
                     'hypothesisId' => 'C',
                     'location' => 'VideoController.php:325',
-                    'message' => 'Before streaming upload',
+                    'message' => 'Before file_get_contents',
                     'data' => [
                         'real_path' => $videoFile->getRealPath(),
                         'file_exists' => file_exists($videoFile->getRealPath()),
-                        'file_size' => $videoFile->getSize(),
                     ],
                     'timestamp' => time() * 1000
                 ]) . "\n";
                 @file_put_contents($logFile, $logEntry, FILE_APPEND);
                 // #endregion
 
-                // Open file as stream instead of loading into memory
-                $fileStream = fopen($videoFile->getRealPath(), 'rb');
-                
-                if ($fileStream === false) {
-                    throw new \Exception('Could not open video file for reading: ' . $videoFile->getRealPath());
-                }
-                
-                Log::info('DEBUG: Starting S3 streaming upload', [
-                    'video_path' => $videoPath,
-                    'file_size' => $videoFile->getSize(),
-                ]);
+                $fileContents = file_get_contents($videoFile->getRealPath());
                 
                 // #region agent log
                 $logEntry = json_encode([
                     'sessionId' => 'debug-session',
                     'runId' => 'run1',
-                    'hypothesisId' => 'D',
-                    'location' => 'VideoController.php:513',
-                    'message' => 'About to call putObject',
+                    'hypothesisId' => 'C',
+                    'location' => 'VideoController.php:335',
+                    'message' => 'After file_get_contents',
                     'data' => [
-                        'bucket' => $bucket,
-                        'bucket_empty' => empty($bucket),
-                        'video_path' => $videoPath,
-                        'has_file_stream' => is_resource($fileStream),
+                        'read_success' => ($fileContents !== false),
+                        'content_length' => $fileContents !== false ? strlen($fileContents) : 0,
+                        'memory_usage_after' => memory_get_usage(true),
                     ],
                     'timestamp' => time() * 1000
                 ]) . "\n";
                 @file_put_contents($logFile, $logEntry, FILE_APPEND);
                 // #endregion
-                
-                // Use putObject with stream for large files
-                $result = $s3Client->putObject([
-                    'Bucket' => $bucket,
-                    'Key' => $videoPath,
-                    'Body' => $fileStream,
-                    'ACL' => 'private',
-                    'ContentType' => $videoFile->getMimeType(),
-                ]);
-                
-                fclose($fileStream);
-                
-                // Check if upload was successful
-                if (isset($result['ObjectURL']) || isset($result['ETag'])) {
-                    $uploadedPath = $videoPath;
-                    
-                    // #region agent log
-                    $logEntry = json_encode([
-                        'sessionId' => 'debug-session',
-                        'runId' => 'run1',
-                        'hypothesisId' => 'E',
-                        'location' => 'VideoController.php:360',
-                        'message' => 'After streaming upload',
-                        'data' => [
-                            'result' => $uploadedPath,
-                            'etag' => $result['ETag'] ?? 'N/A',
-                        ],
-                        'timestamp' => time() * 1000
-                    ]) . "\n";
-                    @file_put_contents($logFile, $logEntry, FILE_APPEND);
-                    Log::info('DEBUG: After streaming upload', ['path' => $uploadedPath, 'etag' => $result['ETag'] ?? 'N/A']);
-                    // #endregion
-                    
-                    Log::info('Streaming upload succeeded', ['path' => $uploadedPath]);
-                } else {
-                    throw new \Exception('S3 putObject did not return expected result');
+
+                if ($fileContents === false) {
+                    throw new \Exception('Could not read video file: ' . $videoFile->getRealPath());
                 }
                 
+                // #region agent log
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'E',
+                    'location' => 'VideoController.php:350',
+                    'message' => 'Before Storage::put() call',
+                    'data' => [
+                        'video_path' => $videoPath,
+                        'content_size' => strlen($fileContents),
+                    ],
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                // #endregion
+
+                try {
+                    $uploadedPath = Storage::disk('s3')->put($videoPath, $fileContents, 'private');
+                } catch (\Exception $putException) {
+                    Log::error('DEBUG: Storage::put() threw exception', [
+                        'error' => $putException->getMessage(),
+                        'file' => $putException->getFile(),
+                        'line' => $putException->getLine(),
+                        'trace' => substr($putException->getTraceAsString(), 0, 500),
+                    ]);
+                    $uploadedPath = false;
+                }
+                
+                // #region agent log
+                $afterPutData = [
+                    'result' => $uploadedPath,
+                    'result_type' => gettype($uploadedPath),
+                    'is_false' => ($uploadedPath === false),
+                    'is_empty' => empty($uploadedPath),
+                ];
+                $logEntry = json_encode([
+                    'sessionId' => 'debug-session',
+                    'runId' => 'run1',
+                    'hypothesisId' => 'E',
+                    'location' => 'VideoController.php:360',
+                    'message' => 'After Storage::put() call',
+                    'data' => $afterPutData,
+                    'timestamp' => time() * 1000
+                ]) . "\n";
+                @file_put_contents($logFile, $logEntry, FILE_APPEND);
+                Log::info('DEBUG: After Storage::put() call', $afterPutData);
+                // #endregion
+                
+                if (!$uploadedPath || $uploadedPath === false) {
+                    throw new \Exception('Fallback put() method also returned false');
+                }
+                
+                Log::info('Fallback put() method succeeded', ['path' => $uploadedPath]);
             } catch (\Exception $fallbackException) {
                 // #region agent log
                 $logEntry = json_encode([
@@ -615,34 +571,12 @@ class VideoController extends Controller
                 @file_put_contents($logFile, $logEntry, FILE_APPEND);
                 // #endregion
 
-                Log::error('DEBUG: Streaming upload failed', [
+                Log::error('Fallback upload method failed', [
                     'error' => $fallbackException->getMessage(),
                     'file' => $fallbackException->getFile(),
                     'line' => $fallbackException->getLine(),
-                    'trace' => substr($fallbackException->getTraceAsString(), 0, 1000),
                 ]);
-                
-                // Last resort: try multipart upload for very large files
-                if ($videoFile->getSize() > 50 * 1024 * 1024) { // > 50MB
-                    try {
-                        Log::info('DEBUG: Attempting multipart upload for large file');
-                        $uploadedPath = $this->uploadLargeFileToS3($videoFile, $videoPath);
-                        if ($uploadedPath) {
-                            Log::info('DEBUG: Multipart upload succeeded', ['path' => $uploadedPath]);
-                        } else {
-                            throw new \Exception('Multipart upload also failed');
-                        }
-                    } catch (\Exception $multipartException) {
-                        Log::error('DEBUG: Multipart upload failed', [
-                            'error' => $multipartException->getMessage(),
-                            'file' => $multipartException->getFile(),
-                            'line' => $multipartException->getLine(),
-                        ]);
-                        throw new \Exception('S3 video upload failed: ' . $fallbackException->getMessage() . ' | Multipart: ' . $multipartException->getMessage());
-                    }
-                } else {
-                    throw new \Exception('S3 video upload failed: ' . $fallbackException->getMessage());
-                }
+                throw new \Exception('S3 video upload failed: putFileAs returned false, and fallback method also failed: ' . $fallbackException->getMessage());
             }
         } else {
             // Set visibility for putFileAs result
@@ -727,7 +661,7 @@ class VideoController extends Controller
         Log::info('Video created successfully in database');
 
         return redirect()
-            ->route('dashboard')
+            ->route('admin.videos.index')
             ->with('success', 'Video uploaded successfully');
 
     } catch (\Throwable $e) {
@@ -743,39 +677,6 @@ class VideoController extends Controller
             ->with('error', 'Upload failed: ' . $e->getMessage());
     }
 }
-
-    /**
-     * Show the form for editing the specified video.
-     */
-    public function edit(Video $video)
-    {
-        $categories = Category::all();
-        return view('admin.videos.edit', compact('video', 'categories'));
-    }
-
-    /**
-     * Update the specified video in storage.
-     */
-    public function update(Request $request, Video $video)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id',
-            'is_premium' => 'boolean',
-        ]);
-
-        $video->update([
-            'title' => $validated['title'],
-            'description' => $validated['description'] ?? null,
-            'category_id' => (int) $validated['category_id'],
-            'is_premium' => $request->boolean('is_premium'),
-        ]);
-
-        return redirect()
-            ->route('admin.videos.index')
-            ->with('success', 'Video updated successfully');
-    }
 
     /**
      * Remove the specified video.
@@ -801,187 +702,6 @@ class VideoController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Failed to delete video: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Upload large file to S3 using multipart upload
-     */
-    private function uploadLargeFileToS3($file, $s3Path)
-    {
-        // Create S3 client directly using AWS SDK
-        $s3Config = config('filesystems.disks.s3');
-        
-        // #region agent log
-        $logFile = base_path('.cursor/debug.log');
-        $logEntry = json_encode([
-            'sessionId' => 'debug-session',
-            'runId' => 'run1',
-            'hypothesisId' => 'E',
-            'location' => 'VideoController.php:730',
-            'message' => 'S3 config in uploadLargeFileToS3',
-            'data' => [
-                'bucket' => $s3Config['bucket'] ?? 'NOT_SET',
-                'bucket_type' => gettype($s3Config['bucket'] ?? null),
-                'bucket_empty' => empty($s3Config['bucket'] ?? null),
-                'bucket_is_null' => ($s3Config['bucket'] ?? null) === null,
-            ],
-            'timestamp' => time() * 1000
-        ]) . "\n";
-        @file_put_contents($logFile, $logEntry, FILE_APPEND);
-        // #endregion
-        
-        $s3Client = new S3Client([
-            'version' => 'latest',
-            'region' => $s3Config['region'],
-            'credentials' => [
-                'key' => $s3Config['key'],
-                'secret' => $s3Config['secret'],
-            ],
-            'endpoint' => $s3Config['endpoint'] ?? null,
-            'use_path_style_endpoint' => $s3Config['use_path_style_endpoint'] ?? false,
-        ]);
-        $bucket = $s3Config['bucket'];
-        
-        // #region agent log
-        $logEntry = json_encode([
-            'sessionId' => 'debug-session',
-            'runId' => 'run1',
-            'hypothesisId' => 'F',
-            'location' => 'VideoController.php:741',
-            'message' => 'Bucket value in uploadLargeFileToS3 before use',
-            'data' => [
-                'bucket' => $bucket,
-                'bucket_type' => gettype($bucket),
-                'bucket_empty' => empty($bucket),
-                'bucket_is_null' => $bucket === null,
-            ],
-            'timestamp' => time() * 1000
-        ]) . "\n";
-        @file_put_contents($logFile, $logEntry, FILE_APPEND);
-        // #endregion
-        
-        // For files > 100MB, use multipart upload
-        $fileSize = $file->getSize();
-        $partSize = 10 * 1024 * 1024; // 10MB parts
-        
-        if ($fileSize < 100 * 1024 * 1024) {
-            // For files < 100MB, use regular streaming
-            $fileStream = fopen($file->getRealPath(), 'rb');
-            if ($fileStream === false) {
-                return false;
-            }
-            
-            // #region agent log
-            $logEntry = json_encode([
-                'sessionId' => 'debug-session',
-                'runId' => 'run1',
-                'hypothesisId' => 'G',
-                'location' => 'VideoController.php:754',
-                'message' => 'About to call putObject in uploadLargeFileToS3',
-                'data' => [
-                    'bucket' => $bucket,
-                    'bucket_empty' => empty($bucket),
-                    's3_path' => $s3Path,
-                ],
-                'timestamp' => time() * 1000
-            ]) . "\n";
-            @file_put_contents($logFile, $logEntry, FILE_APPEND);
-            // #endregion
-            
-            $result = $s3Client->putObject([
-                'Bucket' => $bucket,
-                'Key' => $s3Path,
-                'Body' => $fileStream,
-                'ACL' => 'private',
-                'ContentType' => $file->getMimeType(),
-            ]);
-            
-            fclose($fileStream);
-            return isset($result['ETag']) ? $s3Path : false;
-        }
-        
-        // #region agent log
-        $logEntry = json_encode([
-            'sessionId' => 'debug-session',
-            'runId' => 'run1',
-            'hypothesisId' => 'H',
-            'location' => 'VideoController.php:767',
-            'message' => 'About to call createMultipartUpload',
-            'data' => [
-                'bucket' => $bucket,
-                'bucket_empty' => empty($bucket),
-                's3_path' => $s3Path,
-            ],
-            'timestamp' => time() * 1000
-        ]) . "\n";
-        @file_put_contents($logFile, $logEntry, FILE_APPEND);
-        // #endregion
-        
-        // Multipart upload for very large files
-        $uploadId = $s3Client->createMultipartUpload([
-            'Bucket' => $bucket,
-            'Key' => $s3Path,
-            'ACL' => 'private',
-            'ContentType' => $file->getMimeType(),
-        ])['UploadId'];
-        
-        $parts = [];
-        $partNumber = 1;
-        $fileHandle = fopen($file->getRealPath(), 'rb');
-        
-        if ($fileHandle === false) {
-            return false;
-        }
-        
-        try {
-            while (!feof($fileHandle)) {
-                $data = fread($fileHandle, $partSize);
-                if ($data === false) {
-                    break;
-                }
-                
-                $result = $s3Client->uploadPart([
-                    'Bucket' => $bucket,
-                    'Key' => $s3Path,
-                    'PartNumber' => $partNumber,
-                    'UploadId' => $uploadId,
-                    'Body' => $data,
-                ]);
-                
-                $parts[] = [
-                    'ETag' => $result['ETag'],
-                    'PartNumber' => $partNumber,
-                ];
-                
-                $partNumber++;
-            }
-            
-            // Complete multipart upload
-            $s3Client->completeMultipartUpload([
-                'Bucket' => $bucket,
-                'Key' => $s3Path,
-                'UploadId' => $uploadId,
-                'MultipartUpload' => ['Parts' => $parts],
-            ]);
-            
-            return $s3Path;
-            
-        } catch (\Exception $e) {
-            // Abort multipart upload on error
-            try {
-                $s3Client->abortMultipartUpload([
-                    'Bucket' => $bucket,
-                    'Key' => $s3Path,
-                    'UploadId' => $uploadId,
-                ]);
-            } catch (\Exception $abortException) {
-                Log::warning('Failed to abort multipart upload', ['error' => $abortException->getMessage()]);
-            }
-            
-            throw $e;
-        } finally {
-            fclose($fileHandle);
         }
     }
 

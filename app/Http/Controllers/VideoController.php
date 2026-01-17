@@ -24,19 +24,32 @@ class VideoController extends Controller
         // Check subscription status
         $hasSubscription = $user->subscription_active == 1;
         
-        // Get videos based on subscription
-        if ($hasSubscription) {
-            // User has subscription - show all videos
-            $videos = Video::with('category')->latest()->paginate(12);
-        } else {
-            // User doesn't have subscription - show only non-premium videos
-            $videos = Video::with('category')
-                ->where('is_premium', false)
-                ->latest()
-                ->paginate(12);
+        // Get category filter from request
+        $categoryId = request()->query('category');
+        
+        // Get all categories for filter dropdown
+        $categories = Category::withCount('videos')->orderBy('name')->get();
+        
+        // Get selected category if filtering
+        $selectedCategory = $categoryId ? Category::find($categoryId) : null;
+        
+        // Build query
+        $query = Video::with('category');
+        
+        // Filter by category if provided
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
         }
         
-        return view('videos.index', compact('videos', 'hasSubscription'));
+        // Filter by subscription status
+        if (!$hasSubscription) {
+            $query->where('is_premium', false);
+        }
+        
+        // Order by oldest first (first uploaded = first shown)
+        $videos = $query->oldest()->paginate(12);
+        
+        return view('videos.index', compact('videos', 'hasSubscription', 'categories', 'selectedCategory'));
     }
 
     /**

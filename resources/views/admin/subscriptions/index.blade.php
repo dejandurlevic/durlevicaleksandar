@@ -174,19 +174,10 @@
                                                 </div>
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center space-x-2">
-                                                    <button onclick="openModal({{ $user->id }}, {{ $user->subscription_active ? 'true' : 'false' }}, '{{ $user->subscription_expires_at ? $user->subscription_expires_at->format('Y-m-d') : '' }}')" 
-                                                        class="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-900 text-white rounded-lg font-semibold text-xs sm:text-sm hover:bg-gray-800 transition-colors">
-                                                        Manage
-                                                    </button>
-                                                    <form action="{{ route('admin.subscriptions.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-lg font-semibold text-xs sm:text-sm hover:bg-red-700 transition-colors">
-                                                            Delete
-                                                        </button>
-                                                    </form>
-                                                </div>
+                                                <button onclick="openModal({{ $user->id }}, {{ $user->subscription_active ? 'true' : 'false' }}, '{{ $user->subscription_expires_at ? $user->subscription_expires_at->format('Y-m-d') : '' }}')" 
+                                                    class="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-900 text-white rounded-lg font-semibold text-xs sm:text-sm hover:bg-gray-800 transition-colors">
+                                                    Manage
+                                                </button>
                                             </td>
                                         </tr>
                                     @endforeach

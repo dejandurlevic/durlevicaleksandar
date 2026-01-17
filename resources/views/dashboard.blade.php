@@ -249,7 +249,7 @@
                                     <div class="bg-gray-100 rounded-lg overflow-hidden aspect-video mb-3 relative">
                                         @if($video->thumbnail)
                                             @php
-                                                // Generate thumbnail URL for dashboard videos (same as show.blade.php)
+                                                // Generate thumbnail URL for dashboard videos
                                                 $thumbUrl = null;
                                                 try {
                                                     $thumbPath = $video->thumbnail;
@@ -263,26 +263,18 @@
                                                     }
                                                     
                                                     if (!filter_var($thumbPath, FILTER_VALIDATE_URL)) {
-                                                        // Generate presigned URL for thumbnail (same as video)
-                                                        try {
-                                                            $thumbUrl = Storage::disk('s3')->temporaryUrl($thumbPath, now()->addMinutes(60));
-                                                        } catch (\Exception $e) {
-                                                            // Fallback: construct S3 URL manually
-                                                            $s3Config = config('filesystems.disks.s3');
-                                                            $bucket = $s3Config['bucket'] ?? null;
-                                                            $region = $s3Config['region'] ?? 'us-east-1';
-                                                            $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
-                                                            
-                                                            if ($bucket) {
-                                                                if ($usePathStyle) {
-                                                                    $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
-                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
-                                                                } else {
-                                                                    $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
-                                                                    $thumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
-                                                                }
+                                                        $s3Config = config('filesystems.disks.s3');
+                                                        $bucket = $s3Config['bucket'] ?? null;
+                                                        $region = $s3Config['region'] ?? 'us-east-1';
+                                                        $usePathStyle = $s3Config['use_path_style_endpoint'] ?? false;
+                                                        
+                                                        if ($bucket) {
+                                                            if ($usePathStyle) {
+                                                                $endpoint = $s3Config['endpoint'] ?? "https://s3.{$region}.amazonaws.com";
+                                                                $thumbUrl = rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($thumbPath, '/');
                                                             } else {
-                                                                $thumbUrl = null;
+                                                                $endpoint = $s3Config['endpoint'] ?? "https://{$bucket}.s3.{$region}.amazonaws.com";
+                                                                $thumbUrl = rtrim($endpoint, '/') . '/' . ltrim($thumbPath, '/');
                                                             }
                                                         }
                                                     } else {
