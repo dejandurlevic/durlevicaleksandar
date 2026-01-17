@@ -76,7 +76,7 @@ class RegisteredUserController extends Controller
         }
 
         // Don't login user automatically - they need approval
-        return redirect(route('login'))
-            ->with('status', 'Your registration request has been submitted. You will receive an email notification once your account is approved.');
+        return redirect(route('home'))
+            ->with('registration_success', 'Your registration request has been submitted. You will receive an email notification once your account is approved.');
     }
 }
