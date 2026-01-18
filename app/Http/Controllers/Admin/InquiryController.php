@@ -59,4 +59,15 @@ class InquiryController extends Controller
         return redirect()->route('admin.inquiries.index')
             ->with('success', 'Inquiry approved and invitation email sent to ' . $inquiry->email);
     }
+
+    /**
+     * Delete an inquiry.
+     */
+    public function destroy(Inquiry $inquiry)
+    {
+        $inquiry->delete();
+
+        return redirect()->route('admin.inquiries.index')
+            ->with('success', 'Inquiry deleted successfully.');
+    }
 }

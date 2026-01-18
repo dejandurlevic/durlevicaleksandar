@@ -173,19 +173,11 @@
                                                     @php
                                                         $registerUrl = route('register', ['token' => $inquiry->invite_token]);
                                                     @endphp
-                                                    <div class="space-y-2">
-                                                        <div class="flex items-center space-x-2">
-                                                            <code class="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded break-all" id="token-{{ $inquiry->id }}">{{ $inquiry->invite_token }}</code>
-                                                            <button onclick="copyToken('{{ $inquiry->invite_token }}', '{{ $inquiry->id }}')" class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors whitespace-nowrap" title="Copy token">
-                                                                Copy Token
-                                                            </button>
-                                                        </div>
-                                                        <div class="flex items-center space-x-2">
-                                                            <code class="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded break-all max-w-md" id="link-{{ $inquiry->id }}">{{ $registerUrl }}</code>
-                                                            <button onclick="copyLink('{{ $registerUrl }}', '{{ $inquiry->id }}')" class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors whitespace-nowrap" title="Copy registration link">
-                                                                Copy Link
-                                                            </button>
-                                                        </div>
+                                                    <div class="flex items-center space-x-2">
+                                                        <code class="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded break-all max-w-md" id="link-{{ $inquiry->id }}">{{ $registerUrl }}</code>
+                                                        <button onclick="copyLink('{{ $registerUrl }}', '{{ $inquiry->id }}', this)" class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors whitespace-nowrap" title="Copy registration link">
+                                                            Copy Link
+                                                        </button>
                                                     </div>
                                                 @else
                                                     <span class="text-gray-400 text-sm">-</span>
@@ -193,16 +185,27 @@
                                             </td>
                                             <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inquiry->created_at->format('M d, Y') }}</td>
                                             <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
-                                                @if(!$inquiry->approved)
-                                                    <form method="POST" action="{{ route('admin.inquiries.approve', $inquiry) }}" class="inline">
-                                                        @csrf
-                                                        <button type="submit" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold">
-                                                            Approve
-                                                        </button>
-                                                    </form>
-                                                @else
-                                                    <span class="text-gray-400 text-sm">Approved</span>
-                                                @endif
+                                                <div class="flex items-center space-x-2">
+                                                    @if(!$inquiry->approved)
+                                                        <form method="POST" action="{{ route('admin.inquiries.approve', $inquiry) }}" class="inline">
+                                                            @csrf
+                                                            <button type="submit" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold">
+                                                                Approve
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <span class="text-gray-400 text-sm">Approved</span>
+                                                    @endif
+                                                    @if($inquiry->approved)
+                                                        <form method="POST" action="{{ route('admin.inquiries.destroy', $inquiry) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this inquiry?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
+                                                                Delete
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -224,27 +227,9 @@
     </div>
 
     <script>
-        function copyToken(token, inquiryId) {
-            navigator.clipboard.writeText(token).then(function() {
-                const button = event.target;
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                button.classList.remove('bg-blue-600');
-                button.classList.add('bg-green-600');
-                
-                setTimeout(function() {
-                    button.textContent = originalText;
-                    button.classList.remove('bg-green-600');
-                    button.classList.add('bg-blue-600');
-                }, 2000);
-            }).catch(function(err) {
-                alert('Failed to copy token: ' + err);
-            });
-        }
-
-        function copyLink(link, inquiryId) {
+        function copyLink(link, inquiryId, buttonElement) {
             navigator.clipboard.writeText(link).then(function() {
-                const button = event.target;
+                const button = buttonElement;
                 const originalText = button.textContent;
                 button.textContent = 'Copied!';
                 button.classList.remove('bg-green-600');

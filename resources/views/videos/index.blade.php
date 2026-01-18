@@ -143,11 +143,6 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    @if(request('category'))
-                                        <a href="{{ route('videos.index') }}" class="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm text-center text-gray-600 hover:text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap">
-                                            Clear
-                                        </a>
-                                    @endif
                                 </form>
                             </div>
                         @endif
