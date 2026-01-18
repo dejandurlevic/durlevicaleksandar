@@ -42,8 +42,8 @@
     <section class="pt-32 pb-24 bg-gradient-to-br from-gray-50 via-white to-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 text-gray-900">About Me</h1>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Get to know your fitness coach</p>
+                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 text-gray-900">О мени</h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Упознајте свог фитнес тренера</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -71,21 +71,21 @@
                     <div class="grid grid-cols-3 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                             <div class="text-4xl font-extrabold text-gray-900 mb-2">{{ $trainer['clients_count'] }}+</div>
-                            <div class="text-sm font-semibold text-gray-600">Active Clients</div>
+                            <div class="text-sm font-semibold text-gray-600">Активни клијенти</div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                             <div class="text-4xl font-extrabold text-gray-900 mb-2">{{ $trainer['experience_years'] }}+</div>
-                            <div class="text-sm font-semibold text-gray-600">Years Experience</div>
+                            <div class="text-sm font-semibold text-gray-600">Вишегодишње искуство</div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                            <div class="text-4xl font-extrabold text-gray-900 mb-2">2000+</div>
-                            <div class="text-sm font-semibold text-gray-600">Training Videos</div>
+                            <div class="text-4xl font-extrabold text-gray-900 mb-2">70+</div>
+                            <div class="text-sm font-semibold text-gray-600">Видео снимци за обуку</div>
                         </div>
                     </div>
 
                     <!-- Services List -->
                     <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-4">What I Offer</h3>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">Шта нудим</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             @foreach($trainer['services'] as $service)
                                 <div class="flex items-center space-x-3 group">
@@ -99,7 +99,7 @@
                     <!-- CTA Button -->
                     <div class="pt-4">
                         <a href="{{ route('home') }}#pricing" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
-                            View Pricing Plans
+                        Погледајте ценовнике
                             <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                             </svg>
