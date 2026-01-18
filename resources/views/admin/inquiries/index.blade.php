@@ -170,11 +170,22 @@
                                             </td>
                                             <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                                                 @if($inquiry->approved && $inquiry->invite_token)
-                                                    <div class="flex items-center space-x-2">
-                                                        <code class="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded" id="token-{{ $inquiry->id }}">{{ $inquiry->invite_token }}</code>
-                                                        <button onclick="copyToken('{{ $inquiry->invite_token }}', '{{ $inquiry->id }}')" class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors" title="Copy token">
-                                                            Copy
-                                                        </button>
+                                                    @php
+                                                        $registerUrl = route('register', ['token' => $inquiry->invite_token]);
+                                                    @endphp
+                                                    <div class="space-y-2">
+                                                        <div class="flex items-center space-x-2">
+                                                            <code class="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded break-all" id="token-{{ $inquiry->id }}">{{ $inquiry->invite_token }}</code>
+                                                            <button onclick="copyToken('{{ $inquiry->invite_token }}', '{{ $inquiry->id }}')" class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors whitespace-nowrap" title="Copy token">
+                                                                Copy Token
+                                                            </button>
+                                                        </div>
+                                                        <div class="flex items-center space-x-2">
+                                                            <code class="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded break-all max-w-md" id="link-{{ $inquiry->id }}">{{ $registerUrl }}</code>
+                                                            <button onclick="copyLink('{{ $registerUrl }}', '{{ $inquiry->id }}')" class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors whitespace-nowrap" title="Copy registration link">
+                                                                Copy Link
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 @else
                                                     <span class="text-gray-400 text-sm">-</span>
@@ -228,6 +239,24 @@
                 }, 2000);
             }).catch(function(err) {
                 alert('Failed to copy token: ' + err);
+            });
+        }
+
+        function copyLink(link, inquiryId) {
+            navigator.clipboard.writeText(link).then(function() {
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.remove('bg-green-600');
+                button.classList.add('bg-blue-600');
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-blue-600');
+                    button.classList.add('bg-green-600');
+                }, 2000);
+            }).catch(function(err) {
+                alert('Failed to copy link: ' + err);
             });
         }
     </script>
