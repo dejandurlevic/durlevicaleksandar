@@ -148,6 +148,7 @@
                                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Phone</th>
                                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Plan</th>
                                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Token</th>
                                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
                                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                                     </tr>
@@ -165,6 +166,18 @@
                                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Approved</span>
                                                 @else
                                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
+                                                @if($inquiry->approved && $inquiry->invite_token)
+                                                    <div class="flex items-center space-x-2">
+                                                        <code class="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded" id="token-{{ $inquiry->id }}">{{ $inquiry->invite_token }}</code>
+                                                        <button onclick="copyToken('{{ $inquiry->invite_token }}', '{{ $inquiry->id }}')" class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors" title="Copy token">
+                                                            Copy
+                                                        </button>
+                                                    </div>
+                                                @else
+                                                    <span class="text-gray-400 text-sm">-</span>
                                                 @endif
                                             </td>
                                             <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inquiry->created_at->format('M d, Y') }}</td>
@@ -198,6 +211,26 @@
             </div>
         </main>
     </div>
+
+    <script>
+        function copyToken(token, inquiryId) {
+            navigator.clipboard.writeText(token).then(function() {
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.remove('bg-blue-600');
+                button.classList.add('bg-green-600');
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-600');
+                    button.classList.add('bg-blue-600');
+                }, 2000);
+            }).catch(function(err) {
+                alert('Failed to copy token: ' + err);
+            });
+        }
+    </script>
 </body>
 </html>
 

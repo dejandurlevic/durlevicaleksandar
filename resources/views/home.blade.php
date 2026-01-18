@@ -311,7 +311,8 @@
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-sm sm:text-base text-gray-700 font-medium">Progress Tracking</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium">Праћење напретка
+                            </span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -326,9 +327,9 @@
                             <span class="text-sm sm:text-base text-gray-700 font-medium">Директни chat са тренером</span>
                         </li>
                     </ul>
-                    <a href="{{ route('register') }}?plan=Планови оброка" class="block w-full bg-gradient-to-r from-pink-100 to-rose-100 text-gray-900 py-3 sm:py-4 rounded-xl font-bold text-sm sm:text-base text-center hover:from-pink-200 hover:to-rose-200 transition-colors duration-200">
+                    <button onclick="showPopup('Планови оброка')" class="block w-full bg-gradient-to-r from-pink-100 to-rose-100 text-gray-900 py-3 sm:py-4 rounded-xl font-bold text-sm sm:text-base text-center hover:from-pink-200 hover:to-rose-200 transition-colors duration-200">
                         Choose Plan
-                    </a>
+                    </button>
                 </div>
 
                 <!-- Standard Plan - Most Popular -->
@@ -352,37 +353,37 @@
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-sm sm:text-base font-medium">All Access</span>
+                            <span class="text-sm sm:text-base font-medium">Потпун приступ</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-sm sm:text-base font-medium">Full Video Library</span>
+                            <span class="text-sm sm:text-base font-medium">Комплетна видео библиотека</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-sm sm:text-base font-medium">Priority Support</span>
+                            <span class="text-sm sm:text-base font-medium">Приоритетна подршка</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-sm sm:text-base font-medium">Progress Tracking</span>
+                            <span class="text-sm sm:text-base font-medium">Праћење напретка</span>
                         </li>
                     </ul>
-                    <a href="{{ route('register') }}?plan=Видео снимци за тренинг и планови оброка" class="block w-full bg-white text-gray-900 py-3 sm:py-4 rounded-xl font-bold text-sm sm:text-base text-center hover:bg-gray-100 transition-colors duration-200 shadow-lg">
+                    <button onclick="showPopup('Видео снимци за тренинг и планови оброка')" class="block w-full bg-white text-gray-900 py-3 sm:py-4 rounded-xl font-bold text-sm sm:text-base text-center hover:bg-gray-100 transition-colors duration-200 shadow-lg">
                         Choose Plan
-                    </a>
+                    </button>
                 </div>
 
                 <!-- Premium Plan -->
                 <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-5 sm:p-6 lg:p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300 sm:transform sm:hover:-translate-y-2 flex flex-col">
                     <div class="mb-6 sm:mb-8">
                         <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Видео снимци за тренинг</h3>
-                        <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Ultimate fitness trening</p>
+                        <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Врхунски фитнес тренинг</p>
                         <div class="mb-4 sm:mb-6">
                             <span class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900">€45</span>
                             <span class="text-gray-600 text-base sm:text-lg">/month</span>
@@ -396,25 +397,25 @@
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-sm sm:text-base text-gray-700 font-medium">Full Video Library</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium">Комплетна видео библиотека</span>
                         </li>
                         <li class="flex items-start">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-sm sm:text-base text-gray-700 font-medium">Workout Videos for Glute</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium">Видео снимци вежби за глутеус</span>
                         </li>
             
                         <li class="flex items-start">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span class="text-sm sm:text-base text-gray-700 font-medium">Email Support</span>
+                            <span class="text-sm sm:text-base text-gray-700 font-medium">Подршка путем е-поште</span>
                         </li>
                     </ul>
-                    <a href="{{ route('register') }}?plan=Training Videos" class="block w-full bg-gradient-to-r from-pink-600 to-rose-600 text-white py-3 sm:py-4 rounded-xl font-bold text-sm sm:text-base text-center hover:shadow-lg transition-all duration-200 sm:transform sm:hover:scale-105">
+                    <button onclick="showPopup('Training Videos')" class="block w-full bg-gradient-to-r from-pink-600 to-rose-600 text-white py-3 sm:py-4 rounded-xl font-bold text-sm sm:text-base text-center hover:shadow-lg transition-all duration-200 sm:transform sm:hover:scale-105">
                         Choose Plan
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>

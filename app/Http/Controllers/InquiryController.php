@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Models\Inquiry;
 
 class InquiryController extends Controller
 {
@@ -20,6 +21,16 @@ class InquiryController extends Controller
                 'phone' => 'required|string',
                 'name' => 'nullable|string',
                 'message' => 'nullable|string',
+            ]);
+
+            // Save inquiry to database
+            $inquiry = Inquiry::create([
+                'name' => $validated['name'] ?? null,
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'plan' => $validated['plan'],
+                'message' => $validated['message'] ?? null,
+                'approved' => false,
             ]);
 
             // Attempt to send email
@@ -51,7 +62,7 @@ class InquiryController extends Controller
                 
                 return response()->json([
                     'success' => true, 
-                    'message' => 'Inquiry sent successfully!'
+                    'message' => 'Inquiry sent successfully! We will contact you soon.'
                 ]);
             } catch (\Exception $e) {
                 // Log the detailed error
