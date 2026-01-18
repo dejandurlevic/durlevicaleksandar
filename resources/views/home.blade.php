@@ -444,7 +444,7 @@
                         </svg>
                     </a>
                 </div>
-                <p class="text-gray-500 text-xs sm:text-sm">&copy; {{ date('Y') }} napravio <a href="https://www.durlevicdejan.com" target="_blank" rel="noopener noreferrer" class="text-gray-700 hover:text-gray-900 underline">dejan Durlevic</a>. All rights reserved.</p>
+                <p class="text-gray-500 text-xs sm:text-sm">&copy; {{ date('Y') }} Powered by <a href="https://www.durlevicdejan.com" target="_blank" rel="noopener noreferrer" class="text-gray-700 hover:text-gray-900 underline">Dejan Durlevic</a>. All rights reserved.</p>
             </div>
         </div>
     </footer>
