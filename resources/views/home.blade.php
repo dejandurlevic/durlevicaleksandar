@@ -341,10 +341,10 @@
                         <h3 class="text-xl sm:text-2xl font-bold mb-2">Видео снимци за тренинг и планови оброка</h3>
                         <p class="text-sm sm:text-base text-gray-300 mb-4 sm:mb-6">Најбоља вредност за озбиљне спортисте</p>
                         <div class="mb-4 sm:mb-6">
-                            <span class="text-3xl sm:text-4xl lg:text-5xl font-extrabold">€55</span>
+                            <span class="text-3xl sm:text-4xl lg:text-5xl font-extrabold">€45</span>
                             <span class="text-gray-300 text-base sm:text-lg">/month</span>
                             <div class="mt-2 text-xs sm:text-sm text-gray-300">
-                                ≈ 6.450 RSD / месец
+                                ≈ 5.280 RSD / месец
                             </div>
                         </div>
                     </div>
@@ -385,10 +385,10 @@
                         <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Видео снимци за тренинг</h3>
                         <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Врхунски фитнес тренинг</p>
                         <div class="mb-4 sm:mb-6">
-                            <span class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900">€45</span>
+                            <span class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900">€40</span>
                             <span class="text-gray-600 text-base sm:text-lg">/month</span>
                             <div class="mt-2 text-xs sm:text-sm text-gray-500">
-                                ≈ 5.280 RSD / месец
+                                ≈ 4.696 RSD / месец
                             </div>
                         </div>
                     </div>
